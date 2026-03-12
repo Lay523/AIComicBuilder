@@ -276,43 +276,37 @@ export default function StoryboardPage() {
         </div>
 
         {/* Action buttons row */}
-        <div className="mt-4 flex items-center gap-2 border-t border-[--border-subtle] pt-4">
+        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-[--border-subtle] pt-4">
           {/* Step 1: Generate shots */}
-          {step1Status === "active" && (
-            <>
-              <InlineModelPicker capability="text" />
-              <Button
-                onClick={handleGenerateShots}
-                disabled={anyGenerating}
-                size="sm"
-              >
-                {generating ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Sparkles className="h-3.5 w-3.5" />
-                )}
-                {generating
-                  ? t("common.generating")
-                  : t("project.generateShots")}
-              </Button>
-            </>
-          )}
+          <InlineModelPicker capability="text" />
+          <Button
+            onClick={handleGenerateShots}
+            disabled={anyGenerating}
+            variant={step1Status === "completed" ? "outline" : "default"}
+            size="sm"
+          >
+            {generating ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="h-3.5 w-3.5" />
+            )}
+            {generating
+              ? t("common.generating")
+              : t("project.generateShots")}
+          </Button>
 
           {/* Step 2: Batch generate frames */}
-          {step2Status !== "pending" && (
+          {totalShots > 0 && (
             <>
               <InlineModelPicker capability="image" />
               <Button
                 onClick={handleBatchGenerateFrames}
-                disabled={anyGenerating || step2Status === "completed"}
-                variant={step2Status === "active" ? "default" : "outline"}
+                disabled={anyGenerating}
+                variant={step2Status === "completed" ? "outline" : "default"}
                 size="sm"
-                className={step2Status === "completed" ? "border-emerald-200 text-emerald-600" : ""}
               >
                 {generatingFrames ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : step2Status === "completed" ? (
-                  <Check className="h-3.5 w-3.5 text-emerald-600" />
                 ) : (
                   <ImageIcon className="h-3.5 w-3.5" />
                 )}
@@ -324,23 +318,20 @@ export default function StoryboardPage() {
           )}
 
           {/* Step 3: Batch generate videos */}
-          {step3Status !== "pending" && (
+          {totalShots > 0 && shotsWithFrames > 0 && (
             <>
               <InlineModelPicker capability="video" />
               <VideoRatioPicker value={videoRatio} onChange={setVideoRatio} />
               <Button
                 onClick={handleBatchGenerateVideos}
-                disabled={anyGenerating || step3Status === "completed"}
-                variant={step3Status === "active" ? "default" : "outline"}
+                disabled={anyGenerating}
+                variant={step3Status === "completed" ? "outline" : "default"}
                 size="sm"
-                className={step3Status === "completed" ? "border-emerald-200 text-emerald-600" : ""}
               >
                 {generatingVideos ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : step3Status === "completed" ? (
-                  <Check className="h-3.5 w-3.5 text-emerald-600" />
                 ) : (
-                  <VideoIcon className="h-3.5 w-3.5" />
+                  <Sparkles className="h-3.5 w-3.5" />
                 )}
                 {generatingVideos
                   ? t("common.generating")
@@ -373,6 +364,10 @@ export default function StoryboardPage() {
               projectId={project.id}
               sequence={shot.sequence}
               prompt={shot.prompt}
+              startFrameDesc={shot.startFrameDesc}
+              endFrameDesc={shot.endFrameDesc}
+              motionScript={shot.motionScript}
+              cameraDirection={shot.cameraDirection}
               duration={shot.duration}
               firstFrame={shot.firstFrame}
               lastFrame={shot.lastFrame}

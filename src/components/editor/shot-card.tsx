@@ -31,6 +31,10 @@ interface ShotCardProps {
   projectId: string;
   sequence: number;
   prompt: string;
+  startFrameDesc: string | null;
+  endFrameDesc: string | null;
+  motionScript: string | null;
+  cameraDirection: string;
   duration: number;
   firstFrame: string | null;
   lastFrame: string | null;
@@ -52,6 +56,10 @@ export function ShotCard({
   projectId,
   sequence,
   prompt,
+  startFrameDesc,
+  endFrameDesc,
+  motionScript,
+  cameraDirection,
   duration,
   firstFrame,
   lastFrame,
@@ -169,8 +177,39 @@ export function ShotCard({
           </div>
         </div>
 
-        {/* Status + expand */}
+        {/* Actions + Status + expand */}
         <div className="flex items-center gap-2">
+          {!expanded && (
+            <>
+              <Button
+                size="xs"
+                variant="outline"
+                onClick={(e) => { e.stopPropagation(); handleGenerateFrames(); }}
+                disabled={generatingFrames || generatingVideo}
+              >
+                {generatingFrames ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <ImageIcon className="h-3 w-3" />
+                )}
+                {generatingFrames ? t("common.generating") : t("project.generateFrames")}
+              </Button>
+              {firstFrame && lastFrame && (
+                <Button
+                  size="xs"
+                  onClick={(e) => { e.stopPropagation(); handleGenerateVideo(); }}
+                  disabled={generatingFrames || generatingVideo}
+                >
+                  {generatingVideo ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Sparkles className="h-3 w-3" />
+                  )}
+                  {generatingVideo ? t("common.generating") : t("project.generateVideo")}
+                </Button>
+              )}
+            </>
+          )}
           <Badge variant={variant} className={status === "generating" ? "animate-status-pulse" : ""}>
             {status}
           </Badge>
@@ -217,13 +256,56 @@ export function ShotCard({
       {/* Expanded detail */}
       {expanded && (
         <div className="space-y-4 border-t border-[--border-subtle] p-4">
-          <Textarea
-            value={editPrompt}
-            onChange={(e) => setEditPrompt(e.target.value)}
-            onBlur={handleSave}
-            rows={3}
-            placeholder={t("shot.prompt")}
-          />
+          {/* Scene Description (editable) */}
+          <div>
+            <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-[--text-muted]">
+              {t("shot.sceneDescription")}
+            </p>
+            <Textarea
+              value={editPrompt}
+              onChange={(e) => setEditPrompt(e.target.value)}
+              onBlur={handleSave}
+              rows={2}
+              placeholder={t("shot.prompt")}
+            />
+          </div>
+
+          {/* Start Frame Description */}
+          {startFrameDesc && (
+            <div className="rounded-xl bg-blue-50/50 p-3">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-blue-600">
+                {t("shot.startFrame")}
+              </p>
+              <p className="text-sm leading-relaxed text-[--text-secondary]">{startFrameDesc}</p>
+            </div>
+          )}
+
+          {/* End Frame Description */}
+          {endFrameDesc && (
+            <div className="rounded-xl bg-amber-50/50 p-3">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-amber-600">
+                {t("shot.endFrame")}
+              </p>
+              <p className="text-sm leading-relaxed text-[--text-secondary]">{endFrameDesc}</p>
+            </div>
+          )}
+
+          {/* Motion Script */}
+          {motionScript && (
+            <div className="rounded-xl bg-emerald-50/50 p-3">
+              <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.15em] text-emerald-600">
+                {t("shot.motionScript")}
+              </p>
+              <p className="text-sm leading-relaxed text-[--text-secondary]">{motionScript}</p>
+            </div>
+          )}
+
+          {/* Camera Direction */}
+          {cameraDirection && cameraDirection !== "static" && (
+            <Badge variant="outline" className="text-xs">
+              {cameraDirection}
+            </Badge>
+          )}
 
           {dialogues.length > 0 && (
             <div className="space-y-2 rounded-xl bg-[--surface] p-4">

@@ -66,6 +66,10 @@
   "shot": {
     "sequence": "샷 {number}",
     "prompt": "장면 설명",
+    "sceneDescription": "장면 설명",
+    "startFrame": "시작 프레임 설명",
+    "endFrame": "종료 프레임 설명",
+    "motionScript": "모션 스크립트",
     "duration": "재생 시간(초)",
     "firstFrame": "첫 번째 프레임",
     "lastFrame": "마지막 프레임",

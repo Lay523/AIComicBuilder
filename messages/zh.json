@@ -66,6 +66,10 @@
   "shot": {
     "sequence": "第 {number} 个分镜",
     "prompt": "画面描述",
+    "sceneDescription": "场景描述",
+    "startFrame": "首帧描述",
+    "endFrame": "尾帧描述",
+    "motionScript": "动作脚本",
     "duration": "时长 (秒)",
     "firstFrame": "首帧",
     "lastFrame": "尾帧",

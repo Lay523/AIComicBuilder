@@ -66,6 +66,10 @@
   "shot": {
     "sequence": "Shot {number}",
     "prompt": "Scene Description",
+    "sceneDescription": "Scene Description",
+    "startFrame": "Start Frame Description",
+    "endFrame": "End Frame Description",
+    "motionScript": "Motion Script",
     "duration": "Duration (seconds)",
     "firstFrame": "First Frame",
     "lastFrame": "Last Frame",

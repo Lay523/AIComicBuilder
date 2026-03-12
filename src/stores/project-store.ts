@@ -19,6 +19,10 @@ interface Shot {
   id: string;
   sequence: number;
   prompt: string;
+  startFrameDesc: string | null;
+  endFrameDesc: string | null;
+  motionScript: string | null;
+  cameraDirection: string;
   duration: number;
   firstFrame: string | null;
   lastFrame: string | null;
