@@ -43,23 +43,6 @@ AI 驱动的漫剧生成器 — 从剧本到动画视频的全自动流水线。
 pnpm install
 ```
 
-### 配置
-
-复制 `.env.example` 为 `.env`，填写至少一个 AI 供应商的 API Key：
-
-```env
-# OpenAI
-OPENAI_API_KEY=
-OPENAI_BASE_URL=https://api.openai.com/v1
-
-# Google Gemini
-GEMINI_API_KEY=
-
-# Seedance (视频生成)
-SEEDANCE_API_KEY=
-SEEDANCE_BASE_URL=
-```
-
 ### 初始化数据库
 
 ```bash
@@ -73,6 +56,56 @@ pnpm dev
 ```
 
 访问 [http://localhost:3000](http://localhost:3000)
+
+## Docker 部署
+
+### 快速启动
+
+```bash
+docker run -d \
+  --name ai-comic-builder \
+  -p 3000:3000 \
+  -v ./data:/app/data \
+  -v ./uploads:/app/uploads \
+  twwch/jadeai:latest
+```
+
+启动后在设置页面中配置 AI 模型供应商（OpenAI / Gemini / Seedance）。
+
+### Docker Compose
+
+创建 `docker-compose.yml`：
+
+```yaml
+services:
+  ai-comic-builder:
+    image: twwch/jadeai:latest
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+    restart: unless-stopped
+```
+
+```bash
+docker compose up -d
+```
+
+### 数据持久化
+
+通过 volume 挂载保持数据：
+
+- `./data` — SQLite 数据库文件
+- `./uploads` — 上传的文件及生成的资源（图片、视频等）
+
+### 手动构建镜像
+
+```bash
+git clone https://github.com/twwch/AIComicBuilder.git
+cd AIComicBuilder
+docker build -t ai-comic-builder .
+```
 
 ## 生成流水线
 
