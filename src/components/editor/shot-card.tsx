@@ -44,6 +44,8 @@ interface ShotCardProps {
   status: string;
   dialogues: Dialogue[];
   onUpdate: () => void;
+  batchGeneratingFrames?: boolean;
+  batchGeneratingVideo?: boolean;
 }
 
 const statusVariant: Record<string, "outline" | "success" | "warning" | "destructive"> = {
@@ -69,6 +71,8 @@ export function ShotCard({
   status,
   dialogues,
   onUpdate,
+  batchGeneratingFrames,
+  batchGeneratingVideo,
 }: ShotCardProps) {
   const t = useTranslations();
   const getModelConfig = useModelStore((s) => s.getModelConfig);
@@ -85,6 +89,8 @@ export function ShotCard({
   const [videoRatio, setVideoRatio] = useState("16:9");
   const imageGuard = useModelGuard("image");
   const videoGuard = useModelGuard("video");
+  const isGeneratingFrames = generatingFrames || (!!batchGeneratingFrames && !firstFrame && !lastFrame);
+  const isGeneratingVideo = generatingVideo || (!!batchGeneratingVideo && !!firstFrame && !!lastFrame && !videoUrl);
   const variant = statusVariant[status] || "outline";
 
   async function patchShot(fields: Record<string, unknown>) {
@@ -213,27 +219,27 @@ export function ShotCard({
                 size="xs"
                 variant="outline"
                 onClick={(e) => { e.stopPropagation(); handleGenerateFrames(); }}
-                disabled={generatingFrames || generatingVideo}
+                disabled={isGeneratingFrames || isGeneratingVideo}
               >
-                {generatingFrames ? (
+                {isGeneratingFrames ? (
                   <Loader2 className="h-3 w-3 animate-spin" />
                 ) : (
                   <ImageIcon className="h-3 w-3" />
                 )}
-                {generatingFrames ? t("common.generating") : t("project.generateFrames")}
+                {isGeneratingFrames ? t("common.generating") : t("project.generateFrames")}
               </Button>
               {firstFrame && lastFrame && (
                 <Button
                   size="xs"
                   onClick={(e) => { e.stopPropagation(); handleGenerateVideo(); }}
-                  disabled={generatingFrames || generatingVideo}
+                  disabled={isGeneratingFrames || isGeneratingVideo}
                 >
-                  {generatingVideo ? (
+                  {isGeneratingVideo ? (
                     <Loader2 className="h-3 w-3 animate-spin" />
                   ) : (
                     <Sparkles className="h-3 w-3" />
                   )}
-                  {generatingVideo ? t("common.generating") : t("project.generateVideo")}
+                  {isGeneratingVideo ? t("common.generating") : t("project.generateVideo")}
                 </Button>
               )}
             </>
@@ -378,14 +384,14 @@ export function ShotCard({
               size="sm"
               variant="outline"
               onClick={handleGenerateFrames}
-              disabled={generatingFrames || generatingVideo}
+              disabled={isGeneratingFrames || isGeneratingVideo}
             >
-              {generatingFrames ? (
+              {isGeneratingFrames ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
                 <ImageIcon className="h-3.5 w-3.5" />
               )}
-              {generatingFrames ? t("common.generating") : t("project.generateFrames")}
+              {isGeneratingFrames ? t("common.generating") : t("project.generateFrames")}
             </Button>
 
             {firstFrame && lastFrame && (
@@ -410,14 +416,14 @@ export function ShotCard({
                 <Button
                   size="sm"
                   onClick={handleGenerateVideo}
-                  disabled={generatingFrames || generatingVideo}
+                  disabled={isGeneratingFrames || isGeneratingVideo}
                 >
-                  {generatingVideo ? (
+                  {isGeneratingVideo ? (
                     <Loader2 className="h-3.5 w-3.5 animate-spin" />
                   ) : (
                     <Sparkles className="h-3.5 w-3.5" />
                   )}
-                  {generatingVideo ? t("common.generating") : t("project.generateVideo")}
+                  {isGeneratingVideo ? t("common.generating") : t("project.generateVideo")}
                 </Button>
               </>
             )}
