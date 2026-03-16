@@ -75,10 +75,11 @@ generationMode: text('generation_mode').notNull().default('keyframe'),
 
 payload 需包含：`{ shotId: string, ratio?: string }`（ratio 默认 `"16:9"`，与现有 `single_video_generate` 一致）
 
+注：路由层（`/api/projects/[id]/generate`）在分发到任何 handler 之前已完成 userId 归属校验，handler 内部无需重复。
+
 ```
-1. 验证项目归属（userId）
-2. 根据 payload.shotId 查询镜头，从 shot.projectId 得到 projectId
-3. 查询项目下所有有 referenceImage 的角色 → charRefImages[]（角色是项目级的）
+1. 根据 payload.shotId 查询镜头，从 shot.projectId 得到 projectId
+2. 查询项目下所有有 referenceImage 的角色 → charRefImages[]（角色是项目级的）
 4. 若 charRefImages 为空 → 返回 400（提示先生成角色参考图）
 5. 用 shot.prompt + 角色描述拼接视频 prompt
 6. 调用 videoProvider.generateVideo({
@@ -96,7 +97,7 @@ payload 需包含：`{ shotId: string, ratio?: string }`（ratio 默认 `"16:9"`
 
 结构与现有 `batch_video_generate` 一致，串行处理，差异如下：
 
-- **资格过滤：** 取所有 `status != 'generating'` 且无 `videoUrl` 的镜头（无帧要求）
+- **资格过滤：** 取所有 `status != 'generating'` 且无 `videoUrl` 的镜头（无帧要求）；`failed` 状态的镜头**会被重试**（与 keyframe batch 行为一致，属于有意设计）
 - **预标记：** 循环开始前批量将所有资格镜头标记为 `status: 'generating'`（与 keyframe batch 一致，UI 可即时显示全部进行中状态）
 - **单镜头调用：** 复用 `single_reference_video` 的处理逻辑（`projectId` 从 `shot.projectId` 取，无需 payload 传入）
 - **失败处理：** 单镜头失败时写 `status: 'failed'`，继续处理下一个（与现有 batch 一致）
@@ -135,7 +136,7 @@ type ReferenceVideoParams = {
 export type VideoGenerateParams = (KeyframeVideoParams | ReferenceVideoParams) & {
   prompt: string
   duration: number
-  ratio: string
+  ratio: string   // 必填（原 interface 为可选）；KlingVideoProvider 内的 ?? "16:9" fallback 可同步移除
 }
 ```
 
