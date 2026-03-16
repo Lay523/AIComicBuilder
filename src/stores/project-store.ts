@@ -29,6 +29,7 @@ interface Shot {
   lastFrame: string | null;
   videoUrl: string | null;
   referenceVideoUrl: string | null;
+  lastFrameUrl: string | null;
   status: string;
   dialogues: Dialogue[];
 }

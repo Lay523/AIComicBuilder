@@ -22,22 +22,27 @@ export interface AIProvider {
 type KeyframeVideoParams = {
   firstFrame: string;
   lastFrame: string;
-  charRefImages?: never;
+  initialImage?: never;
 };
 
-// Reference image mode: charRefImages must be provided (local file paths)
+// Reference image mode: a single initial image (local path or http URL)
 type ReferenceVideoParams = {
   firstFrame?: never;
   lastFrame?: never;
-  charRefImages: string[];
+  initialImage: string;
 };
 
 export type VideoGenerateParams = (KeyframeVideoParams | ReferenceVideoParams) & {
   prompt: string;
   duration: number;
-  ratio: string;  // required; callers must provide (default "16:9" at call site)
+  ratio: string;
 };
 
+export interface VideoGenerateResult {
+  filePath: string;
+  lastFrameUrl?: string;
+}
+
 export interface VideoProvider {
-  generateVideo(params: VideoGenerateParams): Promise<string>;
+  generateVideo(params: VideoGenerateParams): Promise<VideoGenerateResult>;
 }

@@ -1,4 +1,4 @@
-import type { VideoProvider, VideoGenerateParams } from "../types";
+import type { VideoProvider, VideoGenerateParams, VideoGenerateResult } from "../types";
 import fs from "node:fs";
 import path from "node:path";
 import { ulid } from "ulid";
@@ -17,18 +17,24 @@ function toDataUrl(filePath: string): string {
   return `data:${mime};base64,${base64}`;
 }
 
+// Accepts either a local file path or an http(s) URL
+function toImageUrl(imagePathOrUrl: string): string {
+  if (imagePathOrUrl.startsWith("http://") || imagePathOrUrl.startsWith("https://")) {
+    return imagePathOrUrl;
+  }
+  return toDataUrl(imagePathOrUrl);
+}
+
 export class SeedanceProvider implements VideoProvider {
   private apiKey: string;
   private baseUrl: string;
   private model: string;
-  private referenceModel: string;
   private uploadDir: string;
 
   constructor(params?: {
     apiKey?: string;
     baseUrl?: string;
     model?: string;
-    referenceModel?: string;
     uploadDir?: string;
   }) {
     this.apiKey = params?.apiKey || process.env.SEEDANCE_API_KEY || "";
@@ -39,18 +45,14 @@ export class SeedanceProvider implements VideoProvider {
     ).replace(/\/+$/, "");
     this.model =
       params?.model || process.env.SEEDANCE_MODEL || "doubao-seedance-1-5-pro-250528";
-    this.referenceModel =
-      params?.referenceModel ||
-      process.env.SEEDANCE_REFERENCE_MODEL ||
-      "doubao-seedance-1-0-lite-i2v-250428";
     this.uploadDir =
       params?.uploadDir || process.env.UPLOAD_DIR || "./uploads";
   }
 
-  async generateVideo(params: VideoGenerateParams): Promise<string> {
+  async generateVideo(params: VideoGenerateParams): Promise<VideoGenerateResult> {
     const body = "firstFrame" in params
       ? this.buildKeyframeBody(params as VideoGenerateParams & { firstFrame: string; lastFrame: string })
-      : this.buildReferenceBody(params as VideoGenerateParams & { charRefImages: string[] });
+      : this.buildReferenceBody(params as VideoGenerateParams & { initialImage: string });
 
     console.log(
       `[Seedance] Submitting task: model=${body.model}, duration=${body.duration}, ratio=${body.ratio}`
@@ -78,7 +80,7 @@ export class SeedanceProvider implements VideoProvider {
     const submitResult = (await submitResponse.json()) as { id: string };
     console.log(`[Seedance] Task submitted: ${submitResult.id}`);
 
-    const videoUrl = await this.pollForResult(submitResult.id);
+    const { videoUrl, lastFrameUrl } = await this.pollForResult(submitResult.id);
 
     const videoResponse = await fetch(videoUrl);
     const buffer = Buffer.from(await videoResponse.arrayBuffer());
@@ -88,19 +90,16 @@ export class SeedanceProvider implements VideoProvider {
     const filepath = path.join(dir, filename);
     fs.writeFileSync(filepath, buffer);
 
-    return filepath;
+    return { filePath: filepath, lastFrameUrl };
   }
 
   private buildKeyframeBody(params: VideoGenerateParams & { firstFrame: string; lastFrame: string }): Record<string, unknown> {
-    const firstFrameUrl = toDataUrl(params.firstFrame);
-    const lastFrameUrl = toDataUrl(params.lastFrame);
-
     return {
       model: this.model,
       content: [
         { type: "text", text: params.prompt },
-        { type: "image_url", image_url: { url: firstFrameUrl }, role: "first_frame" },
-        { type: "image_url", image_url: { url: lastFrameUrl }, role: "last_frame" },
+        { type: "image_url", image_url: { url: toDataUrl(params.firstFrame) }, role: "first_frame" },
+        { type: "image_url", image_url: { url: toDataUrl(params.lastFrame) }, role: "last_frame" },
       ],
       duration: params.duration || 5,
       ratio: params.ratio || "16:9",
@@ -108,28 +107,22 @@ export class SeedanceProvider implements VideoProvider {
     };
   }
 
-  private buildReferenceBody(params: VideoGenerateParams & { charRefImages: string[] }): Record<string, unknown> {
-    // Prepend [图N] references to prompt so the model knows which image is which
-    const imageRefs = params.charRefImages.map((_, i) => `[图${i + 1}]`).join("");
-    const textWithRefs = `${imageRefs}${params.prompt}`;
-
+  // Reference mode: use a single initial image (char ref or previous shot's last frame)
+  private buildReferenceBody(params: VideoGenerateParams & { initialImage: string }): Record<string, unknown> {
     return {
-      model: this.referenceModel,
+      model: this.model,
       content: [
-        { type: "text", text: textWithRefs },
-        ...params.charRefImages.map((imgPath) => ({
-          type: "image_url",
-          image_url: { url: toDataUrl(imgPath) },
-          role: "reference_image",
-        })),
+        { type: "text", text: params.prompt },
+        { type: "image_url", image_url: { url: toImageUrl(params.initialImage) } },
       ],
       duration: params.duration || 5,
       ratio: params.ratio || "16:9",
+      return_last_frame: true,
       watermark: false,
     };
   }
 
-  private async pollForResult(taskId: string): Promise<string> {
+  private async pollForResult(taskId: string): Promise<{ videoUrl: string; lastFrameUrl?: string }> {
     const maxAttempts = 120;
     const interval = 5000;
 
@@ -147,14 +140,17 @@ export class SeedanceProvider implements VideoProvider {
 
       const result = (await response.json()) as {
         status: string;
-        content?: { video_url?: string };
+        content?: { video_url?: string; last_frame_url?: string };
         error?: { message?: string };
       };
 
       console.log(`[Seedance] Poll ${i + 1}: status=${result.status}`);
 
       if (result.status === "succeeded" && result.content?.video_url) {
-        return result.content.video_url;
+        return {
+          videoUrl: result.content.video_url,
+          lastFrameUrl: result.content.last_frame_url,
+        };
       }
       if (result.status === "failed") {
         throw new Error(

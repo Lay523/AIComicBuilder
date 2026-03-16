@@ -1,6 +1,6 @@
 // src/lib/ai/providers/veo.ts
 import { GoogleGenAI } from "@google/genai";
-import type { VideoProvider, VideoGenerateParams } from "../types";
+import type { VideoProvider, VideoGenerateParams, VideoGenerateResult } from "../types";
 import fs from "node:fs";
 import path from "node:path";
 import { ulid } from "ulid";
@@ -46,7 +46,7 @@ export class VeoProvider implements VideoProvider {
     this.uploadDir = params?.uploadDir || process.env.UPLOAD_DIR || "./uploads";
   }
 
-  async generateVideo(params: VideoGenerateParams): Promise<string> {
+  async generateVideo(params: VideoGenerateParams): Promise<VideoGenerateResult> {
     if (!("firstFrame" in params)) {
       throw new Error("Veo provider only supports keyframe (image2video) mode");
     }
@@ -95,7 +95,7 @@ export class VeoProvider implements VideoProvider {
     await this.client.files.download({ file: videoFile, downloadPath });
 
     console.log(`[Veo] Video saved to ${downloadPath}`);
-    return downloadPath;
+    return { filePath: downloadPath };
   }
 
   private async pollForResult(

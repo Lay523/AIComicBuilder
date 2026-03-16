@@ -35,7 +35,7 @@ export async function handleVideoGenerate(task: Task) {
       })
     : shot.prompt || "";
 
-  const videoPath = await videoProvider.generateVideo({
+  const result = await videoProvider.generateVideo({
     firstFrame: shot.firstFrame,
     lastFrame: shot.lastFrame,
     prompt,
@@ -45,8 +45,8 @@ export async function handleVideoGenerate(task: Task) {
 
   await db
     .update(shots)
-    .set({ videoUrl: videoPath, status: "completed" })
+    .set({ videoUrl: result.filePath, status: "completed" })
     .where(eq(shots.id, payload.shotId));
 
-  return { videoPath };
+  return { videoPath: result.filePath };
 }

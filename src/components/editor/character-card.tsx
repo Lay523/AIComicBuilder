@@ -151,13 +151,21 @@ export function CharacterCard({
 
       {referenceImage && (
         <Dialog open={lightbox} onOpenChange={setLightbox}>
-          <DialogContent className="max-w-4xl border-0 bg-transparent p-0 shadow-none">
+          <DialogContent className="!max-w-[90vw] !w-[90vw] border-0 bg-transparent p-0 shadow-none" showCloseButton={false}>
             <DialogTitle className="sr-only">{name}</DialogTitle>
-            <img
-              src={uploadUrl(referenceImage)}
-              alt={name}
-              className="w-full rounded-xl"
-            />
+            <div className="relative inline-block w-full">
+              <img
+                src={uploadUrl(referenceImage)}
+                alt={name}
+                className="w-full max-h-[85vh] object-contain rounded-xl"
+              />
+              <button
+                onClick={() => setLightbox(false)}
+                className="absolute top-2 right-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors"
+              >
+                <span className="text-sm leading-none">✕</span>
+              </button>
+            </div>
           </DialogContent>
         </Dialog>
       )}

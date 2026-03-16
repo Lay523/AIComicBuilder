@@ -1,4 +1,4 @@
-import type { VideoProvider, VideoGenerateParams } from "../types";
+import type { VideoProvider, VideoGenerateParams, VideoGenerateResult } from "../types";
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
@@ -72,7 +72,7 @@ export class KlingVideoProvider implements VideoProvider {
     return `Bearer ${this.apiKey}`;
   }
 
-  async generateVideo(params: VideoGenerateParams): Promise<string> {
+  async generateVideo(params: VideoGenerateParams): Promise<VideoGenerateResult> {
     const duration = params.duration <= 5 ? 5 : 10;
     const aspectRatio = params.ratio;
 
@@ -117,11 +117,11 @@ export class KlingVideoProvider implements VideoProvider {
       console.log(`[Kling Video] image2video task submitted: ${taskId}`);
 
     } else {
-      // ── Reference image mode: text2video ──
-      const refImages = params.charRefImages.map((p) => toBase64(p));
+      // ── Reference image mode: text2video with initial image ──
+      const refImage = toBase64(params.initialImage!);
 
       console.log(
-        `[Kling Video] text2video: model=${this.model}, duration=${duration}s, ratio=${aspectRatio}, refs=${refImages.length}`
+        `[Kling Video] text2video: model=${this.model}, duration=${duration}s, ratio=${aspectRatio}`
       );
 
       let submitRes = await fetch(`${this.baseUrl}/v1/videos/text2video`, {
@@ -133,7 +133,7 @@ export class KlingVideoProvider implements VideoProvider {
         body: JSON.stringify({
           model: this.model,
           prompt: params.prompt,
-          reference_image: refImages,
+          reference_image: [refImage],
           duration,
           aspect_ratio: aspectRatio,
         }),
@@ -184,7 +184,7 @@ export class KlingVideoProvider implements VideoProvider {
     fs.writeFileSync(filepath, buffer);
 
     console.log(`[Kling Video] Saved to ${filepath}`);
-    return filepath;
+    return { filePath: filepath };
   }
 
   private async pollForResult(

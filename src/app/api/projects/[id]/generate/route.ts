@@ -855,7 +855,7 @@ async function handleSingleVideoGenerate(
         })
       : shot.prompt || "";
 
-    const videoPath = await videoProvider.generateVideo({
+    const result = await videoProvider.generateVideo({
       firstFrame: shot.firstFrame,
       lastFrame: shot.lastFrame,
       prompt: videoPrompt,
@@ -865,10 +865,10 @@ async function handleSingleVideoGenerate(
 
     await db
       .update(shots)
-      .set({ videoUrl: videoPath, status: "completed" })
+      .set({ videoUrl: result.filePath, status: "completed" })
       .where(eq(shots.id, shotId));
 
-    return NextResponse.json({ shotId, videoUrl: videoPath, status: "ok" });
+    return NextResponse.json({ shotId, videoUrl: result.filePath, status: "ok" });
   } catch (err) {
     console.error(`[SingleVideoGenerate] Error for shot ${shotId}:`, err);
     await db.update(shots).set({ status: "failed" }).where(eq(shots.id, shotId));
@@ -941,7 +941,7 @@ async function handleBatchVideoGenerate(
           })
         : shot.prompt || "";
 
-      const videoPath = await videoProvider.generateVideo({
+      const result = await videoProvider.generateVideo({
         firstFrame: shot.firstFrame!,
         lastFrame: shot.lastFrame!,
         prompt: videoPrompt,
@@ -951,11 +951,11 @@ async function handleBatchVideoGenerate(
 
       await db
         .update(shots)
-        .set({ videoUrl: videoPath, status: "completed" })
+        .set({ videoUrl: result.filePath, status: "completed" })
         .where(eq(shots.id, shot.id));
 
       console.log(`[BatchVideoGenerate] Shot ${shot.sequence} completed`);
-      results.push({ shotId: shot.id, sequence: shot.sequence, status: "ok", videoUrl: videoPath });
+      results.push({ shotId: shot.id, sequence: shot.sequence, status: "ok", videoUrl: result.filePath });
     } catch (err) {
       console.error(`[BatchVideoGenerate] Error for shot ${shot.sequence}:`, err);
       await db.update(shots).set({ status: "failed" }).where(eq(shots.id, shot.id));
@@ -991,16 +991,29 @@ async function handleSingleReferenceVideo(
     .from(characters)
     .where(eq(characters.projectId, shot.projectId));
 
-  const charRefImages = projectCharacters
+  const firstCharRefImage = projectCharacters
     .filter((c) => !!c.referenceImage)
-    .map((c) => c.referenceImage as string);
+    .map((c) => c.referenceImage as string)[0];
 
-  if (charRefImages.length === 0) {
+  if (!firstCharRefImage) {
     return NextResponse.json(
       { error: "No character reference images available. Please generate character reference images first." },
       { status: 400 }
     );
   }
+
+  // Use previous shot's lastFrameUrl for chaining; fall back to character reference image
+  const allShotsForChain = await db
+    .select({ id: shots.id, sequence: shots.sequence, lastFrameUrl: shots.lastFrameUrl })
+    .from(shots)
+    .where(eq(shots.projectId, shot.projectId))
+    .orderBy(asc(shots.sequence));
+
+  const currentIdx = allShotsForChain.findIndex((s) => s.id === shotId);
+  const previousShot = currentIdx > 0 ? allShotsForChain[currentIdx - 1] : null;
+  const initialImage = previousShot?.lastFrameUrl || firstCharRefImage;
+
+  console.log(`[SingleReferenceVideo] Shot ${shot.sequence}: initialImage=${previousShot?.lastFrameUrl ? "prev lastFrame" : "charRef"}`);
 
   const videoProvider = resolveVideoProvider(modelConfig);
   const ratio = (payload?.ratio as string) || "16:9";
@@ -1033,8 +1046,8 @@ async function handleSingleReferenceVideo(
   try {
     await db.update(shots).set({ status: "generating" }).where(eq(shots.id, shotId));
 
-    const videoPath = await videoProvider.generateVideo({
-      charRefImages,
+    const result = await videoProvider.generateVideo({
+      initialImage,
       prompt: videoPrompt,
       duration: shot.duration ?? 10,
       ratio,
@@ -1042,10 +1055,14 @@ async function handleSingleReferenceVideo(
 
     await db
       .update(shots)
-      .set({ referenceVideoUrl: videoPath, status: "completed" })
+      .set({
+        referenceVideoUrl: result.filePath,
+        lastFrameUrl: result.lastFrameUrl ?? null,
+        status: "completed",
+      })
       .where(eq(shots.id, shotId));
 
-    return NextResponse.json({ shotId, referenceVideoUrl: videoPath, status: "ok" });
+    return NextResponse.json({ shotId, referenceVideoUrl: result.filePath, status: "ok" });
   } catch (err) {
     console.error(`[SingleReferenceVideo] Error for shot ${shotId}:`, err);
     await db.update(shots).set({ status: "failed" }).where(eq(shots.id, shotId));
@@ -1085,11 +1102,11 @@ async function handleBatchReferenceVideo(
     .from(characters)
     .where(eq(characters.projectId, projectId));
 
-  const charRefImages = projectCharacters
+  const firstCharRefImage = projectCharacters
     .filter((c) => !!c.referenceImage)
-    .map((c) => c.referenceImage as string);
+    .map((c) => c.referenceImage as string)[0];
 
-  if (charRefImages.length === 0) {
+  if (!firstCharRefImage) {
     return NextResponse.json(
       { error: "No character reference images available." },
       { status: 400 }
@@ -1117,7 +1134,21 @@ async function handleBatchReferenceVideo(
     error?: string;
   }> = [];
 
+  // Chain: each shot uses the previous shot's lastFrameUrl as initial image
+  // For the first eligible shot, look up the shot with the previous sequence
+  let prevLastFrameUrl: string | null = null;
+
+  // Seed chain from the shot just before the first eligible one (if it exists)
+  const firstEligibleSeq = eligible[0].sequence;
+  const shotBeforeFirst = allShots.find((s) => s.sequence === firstEligibleSeq - 1);
+  if (shotBeforeFirst?.lastFrameUrl) {
+    prevLastFrameUrl = shotBeforeFirst.lastFrameUrl;
+  }
+
   for (const shot of eligible) {
+    const initialImage = prevLastFrameUrl || firstCharRefImage;
+    console.log(`[BatchReferenceVideo] Shot ${shot.sequence}: initialImage=${prevLastFrameUrl ? "prev lastFrame" : "charRef"}`);
+
     try {
       const shotDialogues = await db
         .select({ text: dialogues.text, characterId: dialogues.characterId, sequence: dialogues.sequence })
@@ -1140,8 +1171,8 @@ async function handleBatchReferenceVideo(
           })
         : shot.prompt || "";
 
-      const videoPath = await videoProvider.generateVideo({
-        charRefImages,
+      const result = await videoProvider.generateVideo({
+        initialImage,
         prompt: videoPrompt,
         duration: shot.duration ?? 10,
         ratio,
@@ -1149,14 +1180,23 @@ async function handleBatchReferenceVideo(
 
       await db
         .update(shots)
-        .set({ referenceVideoUrl: videoPath, status: "completed" })
+        .set({
+          referenceVideoUrl: result.filePath,
+          lastFrameUrl: result.lastFrameUrl ?? null,
+          status: "completed",
+        })
         .where(eq(shots.id, shot.id));
 
-      console.log(`[BatchReferenceVideo] Shot ${shot.sequence} completed`);
-      results.push({ shotId: shot.id, sequence: shot.sequence, status: "ok", referenceVideoUrl: videoPath });
+      // Pass this shot's lastFrameUrl to the next shot
+      prevLastFrameUrl = result.lastFrameUrl ?? null;
+
+      console.log(`[BatchReferenceVideo] Shot ${shot.sequence} completed, lastFrameUrl=${result.lastFrameUrl ?? "none"}`);
+      results.push({ shotId: shot.id, sequence: shot.sequence, status: "ok", referenceVideoUrl: result.filePath });
     } catch (err) {
       console.error(`[BatchReferenceVideo] Error for shot ${shot.sequence}:`, err);
       await db.update(shots).set({ status: "failed" }).where(eq(shots.id, shot.id));
+      // On error, reset prevLastFrameUrl so next shot uses charRef (safer)
+      prevLastFrameUrl = null;
       results.push({
         shotId: shot.id,
         sequence: shot.sequence,
