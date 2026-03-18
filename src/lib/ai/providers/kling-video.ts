@@ -47,6 +47,9 @@ function toBase64(filePath: string): string {
 async function toBase64FromPathOrUrl(pathOrUrl: string): Promise<string> {
   if (pathOrUrl.startsWith("http://") || pathOrUrl.startsWith("https://")) {
     const res = await fetch(pathOrUrl);
+    if (!res.ok) {
+      throw new Error(`Failed to fetch image: ${pathOrUrl} (${res.status})`);
+    }
     const buf = Buffer.from(await res.arrayBuffer());
     return buf.toString("base64");
   }
@@ -136,14 +139,12 @@ export class KlingVideoProvider implements VideoProvider {
       };
 
       // Use async helper to handle both local paths and HTTP URLs
-      const refImages: string[] = [await toBase64FromPathOrUrl(refParams.initialImage)];
-
-      // Toonflow pattern: append all character reference images (图片2, 图片3, ...)
-      if (refParams.characterRefs?.length) {
-        for (const ref of refParams.characterRefs) {
-          refImages.push(await toBase64FromPathOrUrl(ref.imagePath));
-        }
-      }
+      // Fetch all images in parallel for better performance
+      const allImagePaths = [
+        refParams.initialImage,
+        ...(refParams.characterRefs?.map((r) => r.imagePath) ?? []),
+      ];
+      const refImages = await Promise.all(allImagePaths.map(toBase64FromPathOrUrl));
 
       console.log(
         `[Kling Video] text2video: model=${this.model}, duration=${duration}s, ratio=${aspectRatio}, refs=${refImages.length}`
