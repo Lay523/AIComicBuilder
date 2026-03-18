@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { projects, characters, shots, dialogues } from "@/lib/db/schema";
-import { eq, asc, and } from "drizzle-orm";
+import { projects, characters, shots, dialogues, storyboardVersions } from "@/lib/db/schema";
+import { eq, asc, and, desc } from "drizzle-orm";
 import { getUserIdFromRequest } from "@/lib/get-user-id";
 
 async function resolveProject(id: string, userId: string) {
@@ -24,17 +24,32 @@ export async function GET(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  const url = new URL(request.url);
+  const versionId = url.searchParams.get("versionId") ?? undefined;
+
+  // Fetch all versions for this project (newest first)
+  const allVersions = await db
+    .select()
+    .from(storyboardVersions)
+    .where(eq(storyboardVersions.projectId, id))
+    .orderBy(desc(storyboardVersions.versionNum));
+
+  // Resolve which version to show shots for
+  const resolvedVersionId = versionId ?? allVersions[0]?.id;
+
   // Fetch related data
   const projectCharacters = await db
     .select()
     .from(characters)
     .where(eq(characters.projectId, id));
 
-  const projectShots = await db
-    .select()
-    .from(shots)
-    .where(eq(shots.projectId, id))
-    .orderBy(asc(shots.sequence));
+  const projectShots = resolvedVersionId
+    ? await db
+        .select()
+        .from(shots)
+        .where(and(eq(shots.projectId, id), eq(shots.versionId, resolvedVersionId)))
+        .orderBy(asc(shots.sequence))
+    : [];
 
   // Enrich each shot with its dialogues (including character name)
   const enrichedShots = await Promise.all(
@@ -59,6 +74,12 @@ export async function GET(
     ...project,
     characters: projectCharacters,
     shots: enrichedShots,
+    versions: allVersions.map((v) => ({
+      id: v.id,
+      label: v.label,
+      versionNum: v.versionNum,
+      createdAt: v.createdAt instanceof Date ? Math.floor(v.createdAt.getTime() / 1000) : v.createdAt,
+    })),
   });
 }
 
