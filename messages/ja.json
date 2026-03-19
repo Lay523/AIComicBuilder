@@ -66,12 +66,23 @@
     "workflowVideoPromptsCount": "{completed}/{total} 生成済み",
     "workflowVideosCount": "{completed}/{total} 生成済み",
     "videoRatio": "動画サイズ",
+    "autoRun": "自動実行",
+    "autoRunConfirm": "不足しているステップをすべて順番に補完します。続けますか？",
     "downloadAll": "素材ダウンロード",
     "assembleVideo": "最終動画を合成",
     "shotsCompleted": "{completed} / {total} ショット完了",
     "finalVideo": "最終動画",
     "finalVideoHint": "動画の合成が完了しました。",
-    "downloadVideo": "動画をダウンロード"
+    "downloadVideo": "動画をダウンロード",
+    "charactersPanel": "キャラクター",
+    "charactersPanelEdit": "キャラクターページで編集",
+    "viewList": "リスト",
+    "viewKanban": "カンバン",
+    "kanbanNeedsFrames": "フレーム生成待ち",
+    "kanbanNeedsPrompt": "プロンプト生成待ち",
+    "kanbanNeedsVideo": "動画生成待ち",
+    "kanbanDone": "完了",
+    "kanbanBatchGenerate": "一括生成 ({count})"
   },
   "character": {
     "name": "キャラクター名",
@@ -79,6 +90,7 @@
     "referenceImage": "参照画像",
     "generateImage": "ターンアラウンド生成",
     "batchGenerateImages": "一括ターンアラウンド生成",
+    "visualHint": "外見の識別子（例：銀髪、金目）",
     "noCharacters": "まだキャラクターがいません。「キャラクター解析」をクリックして脚本からキャラクターを抽出してください。"
   },
   "shot": {
@@ -98,7 +110,16 @@
     "dialogue": "セリフ",
     "generateVideoPrompt": "動画プロンプトを生成",
     "videoPrompt": "動画プロンプト",
-    "noShots": "まだショットがありません。先に脚本からショットを生成してください。"
+    "noShots": "まだショットがありません。先に脚本からショットを生成してください。",
+    "stepText": "シーンテキスト",
+    "stepFrames": "キーフレーム",
+    "stepSceneFrame": "シーン参照フレーム",
+    "stepVideoPrompt": "動画プロンプト",
+    "stepVideo": "動画",
+    "editDetails": "詳細編集",
+    "regenerateFrames": "フレームを再生成",
+    "regeneratePrompt": "プロンプトを再生成",
+    "regenerateVideo": "動画を再生成"
   },
   "settings": {
     "title": "モデル設定",

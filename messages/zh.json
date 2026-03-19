@@ -66,12 +66,23 @@
     "workflowVideoPromptsCount": "{completed}/{total} 已生成",
     "workflowVideosCount": "{completed}/{total} 已生成",
     "videoRatio": "视频尺寸",
+    "autoRun": "一键续跑",
+    "autoRunConfirm": "将按顺序补全所有缺失步骤，继续？",
     "downloadAll": "下载素材",
     "assembleVideo": "合成最终视频",
     "shotsCompleted": "{completed} / {total} 个分镜已完成",
     "finalVideo": "最终视频",
     "finalVideoHint": "视频合成完成",
-    "downloadVideo": "下载视频"
+    "downloadVideo": "下载视频",
+    "charactersPanel": "角色",
+    "charactersPanelEdit": "前往角色页面编辑",
+    "viewList": "列表",
+    "viewKanban": "看板",
+    "kanbanNeedsFrames": "待生成帧",
+    "kanbanNeedsPrompt": "待生成提示词",
+    "kanbanNeedsVideo": "待生成视频",
+    "kanbanDone": "已完成",
+    "kanbanBatchGenerate": "批量生成 ({count})"
   },
   "character": {
     "name": "角色名",
@@ -79,6 +90,7 @@
     "referenceImage": "参考图",
     "generateImage": "生成四视图",
     "batchGenerateImages": "批量生成四视图",
+    "visualHint": "外貌标识（如：白发金瞳）",
     "noCharacters": "还没有角色，点击「角色解析」从剧本中提取角色"
   },
   "shot": {
@@ -98,7 +110,16 @@
     "dialogue": "台词",
     "generateVideoPrompt": "生成视频提示词",
     "videoPrompt": "视频提示词",
-    "noShots": "还没有分镜，先生成分镜"
+    "noShots": "还没有分镜，先生成分镜",
+    "stepText": "分镜文本",
+    "stepFrames": "首尾帧",
+    "stepSceneFrame": "场景参考帧",
+    "stepVideoPrompt": "视频提示词",
+    "stepVideo": "生成视频",
+    "editDetails": "编辑详情",
+    "regenerateFrames": "重新生成帧",
+    "regeneratePrompt": "重新生成提示词",
+    "regenerateVideo": "重新生成视频"
   },
   "settings": {
     "title": "模型设置",

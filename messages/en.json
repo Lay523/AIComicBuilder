@@ -66,12 +66,23 @@
     "workflowVideoPromptsCount": "{completed}/{total} generated",
     "workflowVideosCount": "{completed}/{total} generated",
     "videoRatio": "Video Ratio",
+    "autoRun": "Auto-Run",
+    "autoRunConfirm": "Complete all missing steps in order. Continue?",
     "downloadAll": "Download Assets",
     "assembleVideo": "Assemble Final Video",
     "shotsCompleted": "{completed} / {total} shots completed",
     "finalVideo": "Final Video",
     "finalVideoHint": "Video assembled successfully.",
-    "downloadVideo": "Download Video"
+    "downloadVideo": "Download Video",
+    "charactersPanel": "Characters",
+    "charactersPanelEdit": "Edit in Characters page",
+    "viewList": "List",
+    "viewKanban": "Kanban",
+    "kanbanNeedsFrames": "Needs Frames",
+    "kanbanNeedsPrompt": "Needs Prompt",
+    "kanbanNeedsVideo": "Needs Video",
+    "kanbanDone": "Done",
+    "kanbanBatchGenerate": "Generate ({count})"
   },
   "character": {
     "name": "Character Name",
@@ -79,6 +90,7 @@
     "referenceImage": "Reference Image",
     "generateImage": "Generate Turnaround",
     "batchGenerateImages": "Batch Generate Turnarounds",
+    "visualHint": "Visual ID (e.g. silver hair, gold eyes)",
     "noCharacters": "No characters yet. Click \"Parse Characters\" to extract characters from the script."
   },
   "shot": {
@@ -98,7 +110,16 @@
     "dialogue": "Dialogue",
     "generateVideoPrompt": "Generate Video Prompt",
     "videoPrompt": "Video Prompt",
-    "noShots": "No shots yet. Generate shots from the script first."
+    "noShots": "No shots yet. Generate shots from the script first.",
+    "stepText": "Scene Text",
+    "stepFrames": "Keyframes",
+    "stepSceneFrame": "Scene Ref Frame",
+    "stepVideoPrompt": "Video Prompt",
+    "stepVideo": "Video",
+    "editDetails": "Edit Details",
+    "regenerateFrames": "Regenerate Frames",
+    "regeneratePrompt": "Regenerate Prompt",
+    "regenerateVideo": "Regenerate Video"
   },
   "settings": {
     "title": "Model Settings",

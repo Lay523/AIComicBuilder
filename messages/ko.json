@@ -66,12 +66,23 @@
     "workflowVideoPromptsCount": "{completed}/{total} 생성됨",
     "workflowVideosCount": "{completed}/{total} 생성됨",
     "videoRatio": "영상 비율",
+    "autoRun": "자동 실행",
+    "autoRunConfirm": "누락된 모든 단계를 순서대로 완료합니다. 계속하시겠습니까?",
     "downloadAll": "소재 다운로드",
     "assembleVideo": "최종 영상 합성",
     "shotsCompleted": "{completed} / {total} 샷 완료",
     "finalVideo": "최종 영상",
     "finalVideoHint": "영상 합성이 완료되었습니다.",
-    "downloadVideo": "영상 다운로드"
+    "downloadVideo": "영상 다운로드",
+    "charactersPanel": "캐릭터",
+    "charactersPanelEdit": "캐릭터 페이지에서 편집",
+    "viewList": "목록",
+    "viewKanban": "칸반",
+    "kanbanNeedsFrames": "프레임 생성 필요",
+    "kanbanNeedsPrompt": "프롬프트 생성 필요",
+    "kanbanNeedsVideo": "동영상 생성 필요",
+    "kanbanDone": "완료",
+    "kanbanBatchGenerate": "일괄 생성 ({count})"
   },
   "character": {
     "name": "캐릭터 이름",
@@ -79,6 +90,7 @@
     "referenceImage": "참고 이미지",
     "generateImage": "턴어라운드 생성",
     "batchGenerateImages": "일괄 턴어라운드 생성",
+    "visualHint": "외형 식별자 (예: 은발, 금색 눈)",
     "noCharacters": "아직 캐릭터가 없습니다. \"캐릭터 분석\"을 클릭하여 각본에서 캐릭터를 추출하세요."
   },
   "shot": {
@@ -98,7 +110,16 @@
     "dialogue": "대사",
     "generateVideoPrompt": "비디오 프롬프트 생성",
     "videoPrompt": "비디오 프롬프트",
-    "noShots": "아직 샷이 없습니다. 먼저 각본에서 샷을 생성하세요."
+    "noShots": "아직 샷이 없습니다. 먼저 각본에서 샷을 생성하세요.",
+    "stepText": "장면 텍스트",
+    "stepFrames": "키프레임",
+    "stepSceneFrame": "씬 참조 프레임",
+    "stepVideoPrompt": "비디오 프롬프트",
+    "stepVideo": "비디오",
+    "editDetails": "상세 편집",
+    "regenerateFrames": "프레임 재생성",
+    "regeneratePrompt": "프롬프트 재생성",
+    "regenerateVideo": "비디오 재생성"
   },
   "settings": {
     "title": "모델 설정",
