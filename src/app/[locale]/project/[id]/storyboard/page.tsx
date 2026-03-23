@@ -408,7 +408,7 @@ export default function StoryboardPage() {
                   key={v.id}
                   onClick={() => {
                     setSelectedVersionId(v.id);
-                    fetchProject(project!.id, v.id);
+                    fetchProject(project!.id, undefined, v.id);
                   }}
                   className={`rounded-lg px-3 py-1.5 text-[13px] font-medium transition-colors ${
                     selectedVersionId === v.id
@@ -445,7 +445,7 @@ export default function StoryboardPage() {
                           key={v.id}
                           onClick={() => {
                             setSelectedVersionId(v.id);
-                            fetchProject(project!.id, v.id);
+                            fetchProject(project!.id, undefined, v.id);
                             setVersionDropdownOpen(false);
                           }}
                           className={`w-full px-3 py-2 text-left text-[13px] font-medium transition-colors hover:bg-[--surface] ${

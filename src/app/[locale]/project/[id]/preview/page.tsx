@@ -28,7 +28,7 @@ export default function PreviewPage() {
 
   useEffect(() => {
     if (versionId && params?.id) {
-      fetchProject(params.id, versionId);
+      fetchProject(params.id, undefined, versionId);
     }
   }, [versionId, params?.id, fetchProject]);
 
