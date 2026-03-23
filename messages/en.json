@@ -134,6 +134,8 @@
     "keywords": "Keywords",
     "keywordsPlaceholder": "Keywords, separated by commas...",
     "noDescription": "No description",
+    "videoGenerating": "Generating video...",
+    "videoPending": "Video pending",
     "noEpisodes": "No episodes yet. Click the button above to create one.",
     "deleteConfirm": "Are you sure you want to delete this episode? All shots and guest characters will be removed.",
     "cannotDeleteLast": "Cannot delete the last episode",

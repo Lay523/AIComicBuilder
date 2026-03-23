@@ -134,6 +134,8 @@
     "keywords": "キーワード",
     "keywordsPlaceholder": "キーワード、カンマで区切ってください...",
     "noDescription": "説明なし",
+    "videoGenerating": "動画生成中...",
+    "videoPending": "動画未生成",
     "noEpisodes": "エピソードがまだありません。上のボタンをクリックして作成してください。",
     "deleteConfirm": "このエピソードを削除しますか？すべてのショットとゲストキャラクターが削除されます。",
     "cannotDeleteLast": "最後のエピソードは削除できません",

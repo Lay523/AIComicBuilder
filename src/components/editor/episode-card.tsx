@@ -2,34 +2,27 @@
 
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import { MoreHorizontal, Pencil, Trash2, Tag } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2, Film, Clock, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Episode } from "@/stores/episode-store";
-import { useState, useRef, useEffect } from "react";
-
-const statusConfig: Record<string, { dot: string; text: string; bg: string }> = {
-  draft: { dot: "bg-gray-400", text: "text-gray-600", bg: "bg-gray-50" },
-  processing: { dot: "bg-amber-400 animate-pulse", text: "text-amber-700", bg: "bg-amber-50" },
-  completed: { dot: "bg-emerald-500", text: "text-emerald-700", bg: "bg-emerald-50" },
-};
+import { useState, useRef, useEffect, useCallback } from "react";
 
 interface EpisodeCardProps {
   episode: Episode;
   projectId: string;
   onEdit: (episode: Episode) => void;
   onDelete: (episode: Episode) => void;
+  onPlayVideo?: (episode: Episode) => void;
 }
 
-export function EpisodeCard({ episode, projectId, onEdit, onDelete }: EpisodeCardProps) {
+export function EpisodeCard({ episode, projectId, onEdit, onDelete, onPlayVideo }: EpisodeCardProps) {
   const locale = useLocale();
   const t = useTranslations("dashboard");
   const te = useTranslations("episode");
   const tc = useTranslations("common");
-  const colors = statusConfig[episode.status] || statusConfig.draft;
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Close menu on click outside
   useEffect(() => {
     if (!menuOpen) return;
     function handleClick(e: MouseEvent) {
@@ -41,74 +34,129 @@ export function EpisodeCard({ episode, projectId, onEdit, onDelete }: EpisodeCar
     return () => document.removeEventListener("mousedown", handleClick);
   }, [menuOpen]);
 
+  const hasVideo = !!episode.finalVideoUrl;
+  const isProcessing = episode.status === "processing";
+  const isDraft = episode.status === "draft";
+
   const keywordList = episode.keywords
     ? episode.keywords.split(/[,，]/).map((k) => k.trim()).filter(Boolean)
     : [];
 
+  const handlePlayClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onPlayVideo?.(episode);
+  }, [episode, onPlayVideo]);
+
   return (
-    <div className="group relative overflow-hidden rounded-2xl border border-[--border-subtle] bg-white transition-all duration-200 hover:border-primary/20 hover:shadow-[0_4px_20px_rgba(0,0,0,0.06)]">
-      <Link
-        href={`/${locale}/project/${projectId}/episodes/${episode.id}/script`}
-        className="block p-5"
-      >
-        {/* Top row: sequence badge + title + status */}
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary/15 to-primary/5 font-display text-sm font-bold text-primary">
-              {String(episode.sequence).padStart(2, "0")}
-            </div>
-            <div>
-              <h3 className="font-display text-[15px] font-semibold text-[--text-primary] group-hover:text-primary transition-colors">
-                {episode.title}
-              </h3>
-            </div>
-          </div>
-          <span
-            className={`inline-flex flex-shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-medium ${colors.bg} ${colors.text}`}
+    <div className="group relative flex flex-col overflow-hidden rounded-[14px] border border-[--border-subtle] bg-white transition-all duration-200 hover:border-primary hover:shadow-[0_6px_24px_rgba(232,85,58,0.08)] hover:-translate-y-0.5">
+      {/* Thumbnail area */}
+      {hasVideo ? (
+        /* Completed with video */
+        <div className="relative aspect-video w-full overflow-hidden bg-[--surface]">
+          <video
+            src={episode.finalVideoUrl!}
+            className="h-full w-full object-cover transition-transform duration-400 group-hover:scale-[1.04]"
+            muted
+            preload="metadata"
+          />
+          {/* Play overlay */}
+          <button
+            onClick={handlePlayClick}
+            className="absolute inset-0 flex items-center justify-center bg-black/15 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
           >
-            <span className={`h-1.5 w-1.5 rounded-full ${colors.dot}`} />
-            {t(`projectStatus.${episode.status}` as "projectStatus.draft" | "projectStatus.processing" | "projectStatus.completed")}
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-white/92 shadow-[0_3px_12px_rgba(0,0,0,0.12)] transition-transform duration-200 group-hover:scale-110">
+              <Play className="ml-0.5 h-4 w-4 fill-primary text-primary" />
+            </div>
+          </button>
+          {/* EP label */}
+          <span className="absolute left-2 top-2 rounded-[5px] bg-white/88 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[--text-secondary] backdrop-blur-sm">
+            EP.{String(episode.sequence).padStart(2, "0")}
           </span>
         </div>
+      ) : isProcessing ? (
+        /* Processing: shimmer animation */
+        <div className="relative flex aspect-video w-full flex-col items-center justify-center gap-1.5 overflow-hidden bg-gradient-to-br from-[--surface] to-[#eeece8]">
+          {/* Shimmer effect */}
+          <div className="absolute inset-0 animate-[shimmer-slide_2.5s_infinite] bg-gradient-to-r from-transparent via-primary/[0.04] to-transparent" />
+          {/* EP label */}
+          <span className="absolute left-2 top-2 rounded-[5px] bg-white/70 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[--text-muted]">
+            EP.{String(episode.sequence).padStart(2, "0")}
+          </span>
+          {/* Status badge */}
+          <span className="absolute right-2 top-2 z-[2] flex items-center gap-1 rounded-[5px] bg-amber-500/10 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+            <span className="h-[5px] w-[5px] animate-pulse rounded-full bg-amber-500" />
+            {t("projectStatus.processing")}
+          </span>
+          <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-black/[0.04]">
+            <Clock className="h-[18px] w-[18px] text-[--text-muted] opacity-50" />
+          </div>
+          <span className="text-[11px] text-[--text-muted] opacity-60">{te("videoGenerating")}</span>
+        </div>
+      ) : (
+        /* Draft: static placeholder */
+        <div className="relative flex aspect-video w-full flex-col items-center justify-center gap-1.5 bg-gradient-to-br from-[--surface] to-[#eeece8]">
+          {/* EP label */}
+          <span className="absolute left-2 top-2 rounded-[5px] bg-white/70 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[--text-muted]">
+            EP.{String(episode.sequence).padStart(2, "0")}
+          </span>
+          {/* Status badge */}
+          <span className="absolute right-2 top-2 flex items-center gap-1 rounded-[5px] bg-black/[0.04] px-2 py-0.5 text-[10px] font-medium text-[--text-muted]">
+            <span className="h-[5px] w-[5px] rounded-full bg-[#d4d4d4]" />
+            {t("projectStatus.draft")}
+          </span>
+          <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-black/[0.04]">
+            <Film className="h-[18px] w-[18px] text-[--text-muted] opacity-50" />
+          </div>
+          <span className="text-[11px] text-[--text-muted] opacity-60">{te("videoPending")}</span>
+        </div>
+      )}
 
-        {/* Description */}
-        {episode.description ? (
-          <p className="mt-2.5 line-clamp-2 text-sm leading-relaxed text-[--text-secondary]">
-            {episode.description}
-          </p>
-        ) : (
-          <p className="mt-2.5 text-sm text-[--text-muted]/50 italic">
-            {te("noDescription")}
-          </p>
-        )}
+      {/* Card body - links to script page */}
+      <Link
+        href={`/${locale}/project/${projectId}/episodes/${episode.id}/script`}
+        className="flex flex-1 flex-col p-3.5 pt-3"
+      >
+        <div className="mb-1.5 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-[--text-primary] transition-colors group-hover:text-primary">
+            {episode.title}
+          </h3>
+          {hasVideo && (
+            <span className="flex flex-shrink-0 items-center gap-1 text-[10px] font-medium text-emerald-600">
+              <span className="h-[5px] w-[5px] rounded-full bg-emerald-500" />
+              {t("projectStatus.completed")}
+            </span>
+          )}
+        </div>
 
-        {/* Keywords */}
+        <p className="line-clamp-2 text-xs leading-relaxed text-[--text-muted]">
+          {episode.description || te("noDescription")}
+        </p>
+
         {keywordList.length > 0 && (
-          <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            <Tag className="h-3 w-3 text-[--text-muted]" />
+          <div className="mt-2.5 flex flex-wrap gap-1">
             {keywordList.slice(0, 5).map((kw) => (
               <span
                 key={kw}
-                className="inline-flex rounded-md bg-[--surface] px-2 py-0.5 text-[11px] font-medium text-[--text-secondary]"
+                className="rounded bg-primary/8 px-2 py-0.5 text-[10px] font-medium text-primary"
               >
                 {kw}
               </span>
             ))}
             {keywordList.length > 5 && (
-              <span className="text-[11px] text-[--text-muted]">
-                +{keywordList.length - 5}
-              </span>
+              <span className="text-[10px] text-[--text-muted]">+{keywordList.length - 5}</span>
             )}
           </div>
         )}
       </Link>
 
-      {/* Actions menu - positioned top-right */}
-      <div ref={menuRef} className="absolute right-3 top-3">
+      {/* Actions menu */}
+      <div ref={menuRef} className="absolute right-2 top-2 z-10">
+        {/* Only show menu button over video area on hover; always show for non-video if menu is open */}
         <Button
           variant="ghost"
           size="icon-sm"
-          className="h-7 w-7 text-[--text-muted] opacity-0 transition-all group-hover:opacity-100 hover:bg-[--surface]"
+          className="h-7 w-7 rounded-lg bg-white/80 text-[--text-muted] opacity-0 shadow-sm backdrop-blur-sm transition-all group-hover:opacity-100 hover:bg-white hover:text-[--text-primary]"
           onClick={(e) => {
             e.preventDefault();
             e.stopPropagation();
@@ -118,7 +166,7 @@ export function EpisodeCard({ episode, projectId, onEdit, onDelete }: EpisodeCar
           <MoreHorizontal className="h-4 w-4" />
         </Button>
         {menuOpen && (
-          <div className="absolute right-0 top-full z-10 mt-1 min-w-[140px] rounded-xl border border-[--border-subtle] bg-white py-1 shadow-lg">
+          <div className="absolute right-0 top-full z-20 mt-1 min-w-[140px] rounded-xl border border-[--border-subtle] bg-white py-1 shadow-lg">
             <button
               className="flex w-full items-center gap-2 px-3 py-2 text-sm text-[--text-secondary] transition-colors hover:bg-[--surface] hover:text-[--text-primary]"
               onClick={(e) => {
