@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback, use } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Layers, Plus, Loader2, Users, X } from "lucide-react";
+import { uploadUrl } from "@/lib/utils/upload-url";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { EpisodeCard } from "@/components/editor/episode-card";
@@ -195,7 +196,7 @@ export default function EpisodesPage({
               <X className="h-4 w-4" />
             </button>
             <video
-              src={playingEpisode.finalVideoUrl}
+              src={uploadUrl(playingEpisode.finalVideoUrl)}
               controls
               autoPlay
               className="w-full"

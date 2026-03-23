@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { MoreHorizontal, Pencil, Trash2, Film, Clock, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Episode } from "@/stores/episode-store";
+import { uploadUrl } from "@/lib/utils/upload-url";
 import { useState, useRef, useEffect, useCallback } from "react";
 
 interface EpisodeCardProps {
@@ -55,7 +56,7 @@ export function EpisodeCard({ episode, projectId, onEdit, onDelete, onPlayVideo 
         /* Completed with video */
         <div className="relative aspect-video w-full overflow-hidden bg-[--surface]">
           <video
-            src={episode.finalVideoUrl!}
+            src={uploadUrl(episode.finalVideoUrl!)}
             className="h-full w-full object-cover transition-transform duration-400 group-hover:scale-[1.04]"
             muted
             preload="metadata"
