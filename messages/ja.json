@@ -82,7 +82,10 @@
     "kanbanNeedsPrompt": "プロンプト生成待ち",
     "kanbanNeedsVideo": "動画生成待ち",
     "kanbanDone": "完了",
-    "kanbanBatchGenerate": "一括生成 ({count})"
+    "kanbanBatchGenerate": "一括生成 ({count})",
+    "continueFromPrev": "前話から続ける",
+    "continueFromPrevTooltip": "前話の最後のフレームを最初のフレームとして使用",
+    "prevEpisodeNoFrames": "前話のフレームが未生成です"
   },
   "character": {
     "name": "キャラクター名",
@@ -152,13 +155,23 @@
     "characters": "キャラクター",
     "mainCharacter": "メインキャラクター",
     "guestCharacter": "ゲストキャラクター",
-    "promoteToMain": "メインに昇格"
+    "promoteToMain": "メインに昇格",
+    "mergeVideos": "動画を結合",
+    "mergeCancel": "キャンセル",
+    "mergeConfirm": "結合する",
+    "mergeSelected": "{count}話選択中",
+    "merging": "結合中...",
+    "mergeSuccess": "動画の結合が完了しました",
+    "mergeError": "結合に失敗しました",
+    "mergeMinTwo": "2話以上選択してください",
+    "mergeNoVideo": "動画がまだ合成されていません",
+    "downloadVideo": "動画をダウンロード"
   },
   "import": {
     "title": "脚本インポート",
     "backToEpisodes": "エピソード一覧に戻る",
     "dropHint": "クリックまたはファイルをドラッグ",
-    "supportedFormats": "TXT、DOCX、PDF対応 — 最大20MB",
+    "supportedFormats": "TXT、DOCX、PDF、Markdown 形式対応、最大 20MB",
     "episodeDuration": "各エピソードの目標時間",
     "minutes": "分",
     "startImport": "インポート開始",
@@ -187,7 +200,7 @@
   "uploadScript": {
     "title": "脚本をアップロード",
     "dropHint": "クリックまたはファイルをドラッグ",
-    "supportedFormats": "TXT、DOCX、PDF対応 — 最大20MB",
+    "supportedFormats": "TXT、DOCX、PDF、Markdown 形式対応、最大 20MB",
     "episodeDuration": "各エピソードの目標時間",
     "minutes": "分",
     "upload": "アップロードして分割",

@@ -82,7 +82,10 @@
     "kanbanNeedsPrompt": "待生成提示词",
     "kanbanNeedsVideo": "待生成视频",
     "kanbanDone": "已完成",
-    "kanbanBatchGenerate": "批量生成 ({count})"
+    "kanbanBatchGenerate": "批量生成 ({count})",
+    "continueFromPrev": "续上集",
+    "continueFromPrevTooltip": "使用上一集最后一帧作为本集首帧",
+    "prevEpisodeNoFrames": "上一集尚未生成帧，无法续接"
   },
   "character": {
     "name": "角色名",
@@ -152,13 +155,23 @@
     "characters": "角色",
     "mainCharacter": "主要角色",
     "guestCharacter": "客串角色",
-    "promoteToMain": "提升为主要角色"
+    "promoteToMain": "提升为主要角色",
+    "mergeVideos": "合并视频",
+    "mergeCancel": "取消",
+    "mergeConfirm": "确认合并",
+    "mergeSelected": "已选 {count} 集",
+    "merging": "合并中...",
+    "mergeSuccess": "视频合并成功",
+    "mergeError": "合并失败",
+    "mergeMinTwo": "请至少选择 2 集",
+    "mergeNoVideo": "该分集尚未合成视频",
+    "downloadVideo": "下载视频"
   },
   "import": {
     "title": "导入剧本",
     "backToEpisodes": "返回分集列表",
     "dropHint": "点击或拖拽文件到此处",
-    "supportedFormats": "支持 TXT、DOCX、PDF 格式，最大 20MB",
+    "supportedFormats": "支持 TXT、DOCX、PDF、Markdown 格式，最大 20MB",
     "episodeDuration": "每集目标时长",
     "minutes": "分钟",
     "startImport": "开始导入",
@@ -187,7 +200,7 @@
   "uploadScript": {
     "title": "上传剧本",
     "dropHint": "点击或拖拽文件到此处",
-    "supportedFormats": "支持 TXT、DOCX、PDF 格式，最大 20MB",
+    "supportedFormats": "支持 TXT、DOCX、PDF、Markdown 格式，最大 20MB",
     "episodeDuration": "每集目标时长",
     "minutes": "分钟",
     "upload": "上传并分集",

@@ -82,7 +82,10 @@
     "kanbanNeedsPrompt": "Needs Prompt",
     "kanbanNeedsVideo": "Needs Video",
     "kanbanDone": "Done",
-    "kanbanBatchGenerate": "Generate ({count})"
+    "kanbanBatchGenerate": "Generate ({count})",
+    "continueFromPrev": "Continue from previous",
+    "continueFromPrevTooltip": "Use last frame of previous episode as first frame",
+    "prevEpisodeNoFrames": "Previous episode has no generated frames"
   },
   "character": {
     "name": "Character Name",
@@ -152,13 +155,23 @@
     "characters": "Characters",
     "mainCharacter": "Main Character",
     "guestCharacter": "Guest Character",
-    "promoteToMain": "Promote to Main"
+    "promoteToMain": "Promote to Main",
+    "mergeVideos": "Merge Videos",
+    "mergeCancel": "Cancel",
+    "mergeConfirm": "Merge Selected",
+    "mergeSelected": "{count} selected",
+    "merging": "Merging...",
+    "mergeSuccess": "Videos merged successfully",
+    "mergeError": "Merge failed",
+    "mergeMinTwo": "Select at least 2 episodes",
+    "mergeNoVideo": "Episode video not yet composed",
+    "downloadVideo": "Download Video"
   },
   "import": {
     "title": "Import Script",
     "backToEpisodes": "Back to Episodes",
     "dropHint": "Click or drag file here",
-    "supportedFormats": "Supports TXT, DOCX, PDF — max 20MB",
+    "supportedFormats": "Supports TXT, DOCX, PDF, Markdown — max 20MB",
     "episodeDuration": "Target episode duration",
     "minutes": "min",
     "startImport": "Start Import",
@@ -187,7 +200,7 @@
   "uploadScript": {
     "title": "Upload Script",
     "dropHint": "Click or drag file here",
-    "supportedFormats": "Supports TXT, DOCX, PDF — max 20MB",
+    "supportedFormats": "Supports TXT, DOCX, PDF, Markdown — max 20MB",
     "episodeDuration": "Target episode duration",
     "minutes": "min",
     "upload": "Upload & Split",
