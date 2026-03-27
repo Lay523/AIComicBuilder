@@ -93,8 +93,10 @@ export function ProjectPromptCards({ projectId }: ProjectPromptCardsProps) {
   const [registry, setRegistry] = useState<RegistryEntry[]>([]);
   const [overrides, setOverrides] = useState<ProjectPromptTemplate[]>([]);
   const [loading, setLoading] = useState(true);
-  const [enabled, setEnabled] = useState(false);
   const [deletingKey, setDeletingKey] = useState<string | null>(null);
+
+  // "enabled" is derived from whether project overrides exist
+  const enabled = overrides.length > 0;
 
   // Fetch registry + project overrides on mount
   const loadData = useCallback(async () => {
@@ -108,10 +110,6 @@ export function ProjectPromptCards({ projectId }: ProjectPromptCardsProps) {
       const overData: ProjectPromptTemplate[] = await overResp.json();
       setRegistry(regData);
       setOverrides(overData);
-      // Auto-enable toggle if there are existing overrides
-      if (overData.length > 0) {
-        setEnabled(true);
-      }
     } catch {
       toast.error(t("editor.save") + " failed");
     } finally {
@@ -122,6 +120,28 @@ export function ProjectPromptCards({ projectId }: ProjectPromptCardsProps) {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Toggle: turning off removes all project overrides
+  const handleToggle = async (value: boolean) => {
+    if (!value && overrides.length > 0) {
+      // Delete all project overrides for every prompt
+      try {
+        const promptKeys = [...new Set(overrides.map((o) => o.promptKey))];
+        await Promise.all(
+          promptKeys.map((pk) =>
+            apiFetch(`/api/projects/${projectId}/prompt-templates/${pk}`, {
+              method: "DELETE",
+            })
+          )
+        );
+        setOverrides([]);
+        toast.success(t("editor.resetSuccess"));
+      } catch {
+        toast.error(t("editor.save") + " failed");
+      }
+    }
+    // Turning on doesn't need action — user will edit individual prompts
+  };
 
   // Compute per-prompt stats
   function getPromptStats(entry: RegistryEntry) {
@@ -184,7 +204,7 @@ export function ProjectPromptCards({ projectId }: ProjectPromptCardsProps) {
         <div className="flex flex-col gap-0.5">
           <ToggleSwitch
             checked={enabled}
-            onChange={setEnabled}
+            onChange={handleToggle}
             label={t("project.useProjectPrompts")}
           />
           <p className="ml-12 text-xs text-[--text-muted]">
@@ -198,25 +218,8 @@ export function ProjectPromptCards({ projectId }: ProjectPromptCardsProps) {
         )}
       </div>
 
-      {/* Disabled state — show info message */}
-      {!enabled && (
-        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-[--border-subtle] bg-[--surface] py-10 text-center">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[--surface] text-2xl">
-            <FileText className="h-5 w-5 text-[--text-muted]" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-[--text-secondary]">
-              {t("editor.usingGlobal")}
-            </p>
-            <p className="mt-1 text-xs text-[--text-muted]">
-              {t("project.useProjectPromptsDesc")}
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Card grid */}
-      {enabled && (
+      {/* Card grid — always visible so user can click edit to start customizing */}
+      {(
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {registry.map((entry) => {
             const { hasOverride, totalSlots, modifiedCount } =
