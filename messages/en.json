@@ -146,7 +146,8 @@
     "regenerateVideo": "Regenerate Video",
     "referenceImages": "Reference Images",
     "addRefImage": "Add Reference",
-    "maxRefImages": "Max 9 reference images"
+    "maxRefImages": "Max 9 reference images",
+    "transition": "Transition"
   },
   "storyboard": {
     "stale": "Outdated",

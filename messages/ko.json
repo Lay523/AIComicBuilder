@@ -146,7 +146,8 @@
     "regenerateVideo": "비디오 재생성",
     "referenceImages": "참조 이미지",
     "addRefImage": "참조 추가",
-    "maxRefImages": "최대 9개의 참조 이미지"
+    "maxRefImages": "최대 9개의 참조 이미지",
+    "transition": "전환"
   },
   "storyboard": {
     "stale": "업데이트 필요",

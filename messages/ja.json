@@ -146,7 +146,8 @@
     "regenerateVideo": "動画を再生成",
     "referenceImages": "参照画像",
     "addRefImage": "参照を追加",
-    "maxRefImages": "最大9枚の参照画像"
+    "maxRefImages": "最大9枚の参照画像",
+    "transition": "トランジション"
   },
   "storyboard": {
     "stale": "更新が必要",

@@ -602,7 +602,7 @@ export function ShotCard({
           </div>
           <div className="mt-1 flex items-center gap-2 flex-wrap">
             <div className="flex items-center gap-2 text-xs">
-              <span className="text-[--text-muted] shrink-0">Transition:</span>
+              <span className="text-[--text-muted] shrink-0">{t("shot.transition")}:</span>
               <select
                 value={transitionIn || "cut"}
                 onChange={(e) => { patchShot({ transitionIn: e.target.value }); onUpdate(); }}

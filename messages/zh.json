@@ -147,7 +147,8 @@
     "regenerateVideo": "重新生成视频",
     "referenceImages": "参考图",
     "addRefImage": "添加参考图",
-    "maxRefImages": "最多9张参考图"
+    "maxRefImages": "最多9张参考图",
+    "transition": "转场"
   },
   "storyboard": {
     "stale": "需要更新",
