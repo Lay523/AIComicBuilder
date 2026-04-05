@@ -178,7 +178,8 @@ export function buildShotSplitPrompt(
   screenplay: string,
   characters: string,
   characterVisualHints?: Array<{ name: string; visualHint: string }>,
-  colorPalette?: string
+  colorPalette?: string,
+  characterPerformanceStyles?: Array<{ name: string; performanceStyle: string }>
 ): string {
   const hintBlock = characterVisualHints?.length
     ? `\n--- CHARACTER VISUAL IDENTIFIERS (MANDATORY) ---\n${characterVisualHints.map((c) => `${c.name}：${c.visualHint}`).join("\n")}\n--- END ---\n\nCRITICAL: Whenever a character appears in videoScript, motionScript, startFrame, or endFrame, you MUST write their name followed by their visual identifier in parentheses using EXACTLY the text above. Example: 天枢真君（银发金瞳）. Never invent alternative descriptions — always reuse the exact identifier string provided.`
@@ -194,7 +195,7 @@ ${screenplay}
 ${characters}
 --- END ---
 ${hintBlock}
-Important: reference characters by their exact names and ensure their visual descriptions in startFrame/endFrame align with the character references above.
+Important: reference characters by their exact names and ensure their visual descriptions in startFrame/endFrame align with the character references above.${characterPerformanceStyles?.length ? `\n\n--- CHARACTER PERFORMANCE STYLES ---\n${characterPerformanceStyles.map((c) => `${c.name}：${c.performanceStyle}`).join("\n")}\n--- END ---\n\nUse each character's performance style to guide their expressions, poses, and gestures in startFrame, endFrame, and motionScript.` : ""}
 
 IMPORTANT: Your output language MUST match the language of the screenplay above. If it is in Chinese, write all fields in Chinese (except cameraDirection).${colorPalette ? `\n\n## GLOBAL COLOR PALETTE\nAll shots must use this color scheme: ${colorPalette}. Describe scenes with colors consistent with this palette.\n` : ""}`;
 }

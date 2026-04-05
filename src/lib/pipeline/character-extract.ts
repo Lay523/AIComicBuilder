@@ -32,6 +32,9 @@ export async function handleCharacterExtract(task: Task) {
     name: string;
     description: string;
     visualHint?: string;
+    heightCm?: number;
+    bodyType?: string;
+    performanceStyle?: string;
   }>;
 
   let newCharacters = extracted;
@@ -72,6 +75,9 @@ export async function handleCharacterExtract(task: Task) {
         name: char.name,
         description: char.description,
         visualHint: char.visualHint ?? "",
+        heightCm: char.heightCm || 0,
+        bodyType: char.bodyType || "average",
+        performanceStyle: char.performanceStyle || "",
         scope,
         episodeId: payload.episodeId ?? null,
       })

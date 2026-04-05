@@ -71,7 +71,11 @@ export async function handleShotSplit(task: Task) {
   });
 
   const ai = resolveAIProvider(payload.modelConfig);
-  let userPrompt = buildShotSplitPrompt(payload.screenplay, characterDescriptions, undefined, colorPalette || undefined) + relationsText;
+  const performanceStyles = projectCharacters
+    .filter(c => c.performanceStyle)
+    .map(c => ({ name: c.name, performanceStyle: c.performanceStyle! }));
+
+  let userPrompt = buildShotSplitPrompt(payload.screenplay, characterDescriptions, undefined, colorPalette || undefined, performanceStyles.length > 0 ? performanceStyles : undefined) + relationsText;
 
   // Inject world setting
   if (project?.worldSetting) {

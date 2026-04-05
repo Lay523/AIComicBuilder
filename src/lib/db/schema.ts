@@ -68,6 +68,9 @@ export const characters = sqliteTable("characters", {
   visualHint: text("visual_hint").default(""),
   referenceImage: text("reference_image"),
   scope: text("scope", { enum: ["main", "guest"] }).notNull().default("main"),
+  performanceStyle: text("performance_style").default(""),
+  heightCm: integer("height_cm").default(0),
+  bodyType: text("body_type").default("average"),
   isStale: integer("is_stale").notNull().default(0),
   episodeId: text("episode_id").references(() => episodes.id, {
     onDelete: "cascade",
@@ -151,6 +154,7 @@ export const shots = sqliteTable("shots", {
   depthOfField: text("depth_of_field").default("medium"),
   soundDesign: text("sound_design").default(""),
   musicCue: text("music_cue").default(""),
+  costumeOverrides: text("costume_overrides").default(""),
   isStale: integer("is_stale").notNull().default(0),
   status: text("status", {
     enum: ["pending", "generating", "completed", "failed"],
@@ -241,6 +245,19 @@ export const characterRelations = sqliteTable("character_relations", {
     .references(() => characters.id, { onDelete: "cascade" }),
   relationType: text("relation_type").notNull().default("neutral"),
   description: text("description").default(""),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export const characterCostumes = sqliteTable("character_costumes", {
+  id: text("id").primaryKey(),
+  characterId: text("character_id")
+    .notNull()
+    .references(() => characters.id, { onDelete: "cascade" }),
+  name: text("name").notNull().default("default"),
+  description: text("description").default(""),
+  referenceImage: text("reference_image"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),

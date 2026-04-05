@@ -360,7 +360,10 @@ const CHAR_EXTRACT_OUTPUT_FORMAT = `═══ 输出格式 ═══
     "scope": "main" 或 "guest",
     "description": "完整视觉规格——单段落，包含以下所有要求",
     "visualHint": "2-4个字的视觉标识符，用于对白标签（如 银发金瞳、红衣长发）。必须一眼可识别——聚焦最显著的外貌特征。",
-    "personality": "2-3个塑造姿态、表情和动作的核心性格特质"
+    "personality": "2-3个塑造姿态、表情和动作的核心性格特质",
+    "heightCm": "估算身高（厘米），如175。根据剧本中的线索推断。",
+    "bodyType": "slim | average | athletic | heavy | petite | tall",
+    "performanceStyle": "表演风格描述——动作幅度（夸张/细腻）、标志性手势、情绪表达模式"
   }
 ]`;
 

@@ -664,6 +664,10 @@ async function handleShotSplitStream(
     .filter((c) => c.visualHint)
     .map((c) => ({ name: c.name, visualHint: c.visualHint! }));
 
+  const characterPerformanceStyles = shotCharacters
+    .filter((c) => c.performanceStyle)
+    .map((c) => ({ name: c.name, performanceStyle: c.performanceStyle! }));
+
   // Fetch world setting and target duration from project
   const [projData] = await db.select({ worldSetting: projects.worldSetting, targetDuration: projects.targetDuration }).from(projects).where(eq(projects.id, projectId));
   let targetDuration = projData?.targetDuration || 0;
@@ -710,7 +714,7 @@ async function handleShotSplitStream(
   // Process chunks concurrently
   const chunkResults = await Promise.all(
     sceneChunks.map(async (chunk, idx) => {
-      let prompt = buildShotSplitPrompt(chunk, characterDescriptions, characterVisualHints);
+      let prompt = buildShotSplitPrompt(chunk, characterDescriptions, characterVisualHints, undefined, characterPerformanceStyles.length > 0 ? characterPerformanceStyles : undefined);
 
       // Inject world setting
       if (projData?.worldSetting) {

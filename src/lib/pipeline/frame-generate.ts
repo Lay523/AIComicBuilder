@@ -31,7 +31,13 @@ export async function handleFrameGenerate(task: Task) {
     .where(eq(characters.projectId, payload.projectId));
 
   const characterDescriptions = projectCharacters
-    .map((c) => `${c.name}: ${c.description}`)
+    .map((c) => {
+      let desc = `${c.name}: ${c.description}`;
+      if (c.performanceStyle) {
+        desc += ` [Performance: ${c.performanceStyle}]`;
+      }
+      return desc;
+    })
     .join("\n");
 
   const [previousShot] = await db
@@ -79,6 +85,20 @@ export async function handleFrameGenerate(task: Task) {
   }
   if (colorPalette) {
     compositionSuffix += `\n\nGLOBAL COLOR PALETTE (mandatory): ${colorPalette}. All frames must adhere to this color scheme.`;
+  }
+
+  // Build character height context for multi-character shots
+  const shotPrompt = shot.prompt || "";
+  const charsInPrompt = projectCharacters.filter(c => shotPrompt.includes(c.name));
+  if (charsInPrompt.length > 1) {
+    const heightInfo = charsInPrompt
+      .filter(c => c.heightCm && c.heightCm > 0)
+      .sort((a, b) => (b.heightCm || 170) - (a.heightCm || 170))
+      .map(c => `${c.name}: ${c.heightCm}cm (${c.bodyType || "average"})`)
+      .join(", ");
+    if (heightInfo) {
+      compositionSuffix += `. Character heights: ${heightInfo}. Maintain correct relative proportions`;
+    }
   }
 
   await db
