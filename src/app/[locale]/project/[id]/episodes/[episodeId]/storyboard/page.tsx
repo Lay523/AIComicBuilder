@@ -55,6 +55,13 @@ export default function EpisodeStoryboardPage() {
   const [versionDropdownOpen, setVersionDropdownOpen] = useState(false);
   const versionDropdownRef = useRef<HTMLDivElement>(null);
   const [continueFromPrev, setContinueFromPrev] = useState(false);
+  const [batchProgress, setBatchProgress] = useState<{
+    total: number;
+    completed: number;
+    failed: string[]; // shot IDs that failed
+  } | null>(null);
+  const [lastFailedShots, setLastFailedShots] = useState<string[]>([]);
+  const [lastBatchAction, setLastBatchAction] = useState<string | null>(null);
 
   const currentEpisodeId = useProjectStore((s) => s.currentEpisodeId);
   const episodeStoreEpisodes = useEpisodeStore((s) => s.episodes);
@@ -171,6 +178,10 @@ export default function EpisodeStoryboardPage() {
     if (!imageGuard()) return;
     setGeneratingFramesOverwrite(overwrite);
     setGeneratingFrames(true);
+    setLastBatchAction("batch_frame_generate");
+
+    const targets = project.shots.filter((s) => overwrite ? true : !s.firstFrame);
+    setBatchProgress({ total: targets.length, completed: 0, failed: [] });
 
     try {
       const response = await apiFetch(`/api/projects/${project.id}/generate`, {
@@ -183,9 +194,17 @@ export default function EpisodeStoryboardPage() {
           episodeId: useProjectStore.getState().currentEpisodeId,
         }),
       });
-      const data = await response.json() as { results: Array<{ status: string }> };
-      if (data.results?.some((r) => r.status === "error")) {
-        toast.warning(t("common.batchPartialFailed"));
+      const data = await response.json() as { results: Array<{ shotId?: string; status: string }> };
+      const failedIds = (data.results || []).filter((r) => r.status === "error").map((r) => r.shotId!).filter(Boolean);
+      const totalProcessed = data.results?.length || targets.length;
+      setBatchProgress({ total: totalProcessed, completed: totalProcessed, failed: failedIds });
+
+      if (failedIds.length > 0) {
+        setLastFailedShots(failedIds);
+        toast.error(`${failedIds.length}/${totalProcessed} shots failed`);
+      } else {
+        setLastFailedShots([]);
+        toast.success(`All ${totalProcessed} shots completed`);
       }
     } catch (err) {
       console.error("Batch frame generate error:", err);
@@ -194,7 +213,8 @@ export default function EpisodeStoryboardPage() {
 
     setGeneratingFramesOverwrite(false);
     setGeneratingFrames(false);
-    fetchProject(project.id, useProjectStore.getState().currentEpisodeId!);
+    await fetchProject(project.id, useProjectStore.getState().currentEpisodeId!);
+    setBatchProgress(null);
   }
 
   async function handleBatchGenerateVideos(overwrite = false) {
@@ -202,6 +222,10 @@ export default function EpisodeStoryboardPage() {
     if (!videoGuard()) return;
     setGeneratingVideosOverwrite(overwrite);
     setGeneratingVideos(true);
+    setLastBatchAction("batch_video_generate");
+
+    const targets = project.shots.filter((s) => overwrite ? true : !s.videoUrl);
+    setBatchProgress({ total: targets.length, completed: 0, failed: [] });
 
     try {
       const response = await apiFetch(`/api/projects/${project.id}/generate`, {
@@ -214,9 +238,17 @@ export default function EpisodeStoryboardPage() {
           episodeId: useProjectStore.getState().currentEpisodeId,
         }),
       });
-      const data = await response.json() as { results: Array<{ status: string }> };
-      if (data.results?.some((r) => r.status === "error")) {
-        toast.warning(t("common.batchPartialFailed"));
+      const data = await response.json() as { results: Array<{ shotId?: string; status: string }> };
+      const failedIds = (data.results || []).filter((r) => r.status === "error").map((r) => r.shotId!).filter(Boolean);
+      const totalProcessed = data.results?.length || targets.length;
+      setBatchProgress({ total: totalProcessed, completed: totalProcessed, failed: failedIds });
+
+      if (failedIds.length > 0) {
+        setLastFailedShots(failedIds);
+        toast.error(`${failedIds.length}/${totalProcessed} shots failed`);
+      } else {
+        setLastFailedShots([]);
+        toast.success(`All ${totalProcessed} shots completed`);
       }
     } catch (err) {
       console.error("Batch video generate error:", err);
@@ -225,7 +257,8 @@ export default function EpisodeStoryboardPage() {
 
     setGeneratingVideosOverwrite(false);
     setGeneratingVideos(false);
-    fetchProject(project.id, useProjectStore.getState().currentEpisodeId!);
+    await fetchProject(project.id, useProjectStore.getState().currentEpisodeId!);
+    setBatchProgress(null);
   }
 
   async function handleBatchGenerateSceneFrames(overwrite = false) {
@@ -233,6 +266,10 @@ export default function EpisodeStoryboardPage() {
     if (!imageGuard()) return;
     setSceneFramesOverwrite(overwrite);
     setGeneratingSceneFrames(true);
+    setLastBatchAction("batch_scene_frame");
+
+    const targets = project.shots.filter((s) => overwrite ? true : !s.sceneRefFrame);
+    setBatchProgress({ total: targets.length, completed: 0, failed: [] });
 
     try {
       const response = await apiFetch(`/api/projects/${project.id}/generate`, {
@@ -245,9 +282,17 @@ export default function EpisodeStoryboardPage() {
           episodeId: useProjectStore.getState().currentEpisodeId,
         }),
       });
-      const data = await response.json() as { results: Array<{ status: string }> };
-      if (data.results?.some((r) => r.status === "error")) {
-        toast.warning(t("common.batchPartialFailed"));
+      const data = await response.json() as { results: Array<{ shotId?: string; status: string }> };
+      const failedIds = (data.results || []).filter((r) => r.status === "error").map((r) => r.shotId!).filter(Boolean);
+      const totalProcessed = data.results?.length || targets.length;
+      setBatchProgress({ total: totalProcessed, completed: totalProcessed, failed: failedIds });
+
+      if (failedIds.length > 0) {
+        setLastFailedShots(failedIds);
+        toast.error(`${failedIds.length}/${totalProcessed} shots failed`);
+      } else {
+        setLastFailedShots([]);
+        toast.success(`All ${totalProcessed} shots completed`);
       }
     } catch (err) {
       console.error("Batch scene frame error:", err);
@@ -256,12 +301,17 @@ export default function EpisodeStoryboardPage() {
 
     setSceneFramesOverwrite(false);
     setGeneratingSceneFrames(false);
-    fetchProject(project.id, useProjectStore.getState().currentEpisodeId!);
+    await fetchProject(project.id, useProjectStore.getState().currentEpisodeId!);
+    setBatchProgress(null);
   }
 
   async function handleBatchGenerateVideoPrompts() {
     if (!project) return;
     setGeneratingVideoPrompts(true);
+    setLastBatchAction("batch_video_prompt");
+
+    const targets = project.shots.filter((s) => !s.videoPrompt);
+    setBatchProgress({ total: targets.length, completed: 0, failed: [] });
 
     try {
       const response = await apiFetch(`/api/projects/${project.id}/generate`, {
@@ -274,9 +324,17 @@ export default function EpisodeStoryboardPage() {
           episodeId: useProjectStore.getState().currentEpisodeId,
         }),
       });
-      const data = await response.json() as { results: Array<{ status: string }> };
-      if (data.results?.some((r) => r.status === "error")) {
-        toast.warning(t("common.batchPartialFailed"));
+      const data = await response.json() as { results: Array<{ shotId?: string; status: string }> };
+      const failedIds = (data.results || []).filter((r) => r.status === "error").map((r) => r.shotId!).filter(Boolean);
+      const totalProcessed = data.results?.length || targets.length;
+      setBatchProgress({ total: totalProcessed, completed: totalProcessed, failed: failedIds });
+
+      if (failedIds.length > 0) {
+        setLastFailedShots(failedIds);
+        toast.error(`${failedIds.length}/${totalProcessed} shots failed`);
+      } else {
+        setLastFailedShots([]);
+        toast.success(`All ${totalProcessed} shots completed`);
       }
     } catch (err) {
       console.error("Batch video prompt error:", err);
@@ -284,7 +342,8 @@ export default function EpisodeStoryboardPage() {
     }
 
     setGeneratingVideoPrompts(false);
-    fetchProject(project.id, useProjectStore.getState().currentEpisodeId!);
+    await fetchProject(project.id, useProjectStore.getState().currentEpisodeId!);
+    setBatchProgress(null);
   }
 
   async function handleBatchGenerateReferenceVideos(overwrite = false) {
@@ -292,6 +351,10 @@ export default function EpisodeStoryboardPage() {
     if (!videoGuard()) return;
     setGeneratingVideosOverwrite(overwrite);
     setGeneratingVideos(true);
+    setLastBatchAction("batch_reference_video");
+
+    const targets = project.shots.filter((s) => overwrite ? true : !s.referenceVideoUrl);
+    setBatchProgress({ total: targets.length, completed: 0, failed: [] });
 
     try {
       const response = await apiFetch(`/api/projects/${project.id}/generate`, {
@@ -304,9 +367,17 @@ export default function EpisodeStoryboardPage() {
           episodeId: useProjectStore.getState().currentEpisodeId,
         }),
       });
-      const data = await response.json() as { results: Array<{ status: string }> };
-      if (data.results?.some((r) => r.status === "error")) {
-        toast.warning(t("common.batchPartialFailed"));
+      const data = await response.json() as { results: Array<{ shotId?: string; status: string }> };
+      const failedIds = (data.results || []).filter((r) => r.status === "error").map((r) => r.shotId!).filter(Boolean);
+      const totalProcessed = data.results?.length || targets.length;
+      setBatchProgress({ total: totalProcessed, completed: totalProcessed, failed: failedIds });
+
+      if (failedIds.length > 0) {
+        setLastFailedShots(failedIds);
+        toast.error(`${failedIds.length}/${totalProcessed} shots failed`);
+      } else {
+        setLastFailedShots([]);
+        toast.success(`All ${totalProcessed} shots completed`);
       }
     } catch (err) {
       console.error("Batch reference video error:", err);
@@ -315,7 +386,72 @@ export default function EpisodeStoryboardPage() {
 
     setGeneratingVideosOverwrite(false);
     setGeneratingVideos(false);
-    fetchProject(project.id, useProjectStore.getState().currentEpisodeId!);
+    await fetchProject(project.id, useProjectStore.getState().currentEpisodeId!);
+    setBatchProgress(null);
+  }
+
+  async function handleRetryFailed() {
+    if (!project) return;
+    const failedShots = project.shots.filter((s) => lastFailedShots.includes(s.id));
+    if (failedShots.length === 0) return;
+
+    // Map batch action to single-shot action
+    const actionMap: Record<string, string> = {
+      batch_frame_generate: "single_frame_generate",
+      batch_video_generate: "single_video_generate",
+      batch_scene_frame: "single_scene_frame",
+      batch_reference_video: "single_reference_video",
+      batch_video_prompt: "single_video_prompt",
+    };
+    const singleAction = lastBatchAction ? actionMap[lastBatchAction] : null;
+    if (!singleAction) return;
+
+    // Set appropriate generating state
+    if (lastBatchAction === "batch_frame_generate") setGeneratingFrames(true);
+    else if (lastBatchAction === "batch_video_generate" || lastBatchAction === "batch_reference_video") setGeneratingVideos(true);
+    else if (lastBatchAction === "batch_scene_frame") setGeneratingSceneFrames(true);
+    else if (lastBatchAction === "batch_video_prompt") setGeneratingVideoPrompts(true);
+
+    setBatchProgress({ total: failedShots.length, completed: 0, failed: [] });
+    const newFailedIds: string[] = [];
+
+    for (const shot of failedShots) {
+      try {
+        const resp = await apiFetch(`/api/projects/${project.id}/generate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: singleAction,
+            payload: { shotId: shot.id, ratio: videoRatio, versionId: selectedVersionId },
+            modelConfig: getModelConfig(),
+            episodeId: useProjectStore.getState().currentEpisodeId,
+          }),
+        });
+        if (!resp.ok) throw new Error(`Shot ${shot.sequence} failed`);
+      } catch (err) {
+        console.error(`Retry failed for shot ${shot.id}:`, err);
+        newFailedIds.push(shot.id);
+      }
+      setBatchProgress((prev) =>
+        prev ? { ...prev, completed: prev.completed + 1, failed: newFailedIds.slice() } : null
+      );
+    }
+
+    // Reset generating states
+    setGeneratingFrames(false);
+    setGeneratingVideos(false);
+    setGeneratingSceneFrames(false);
+    setGeneratingVideoPrompts(false);
+
+    await fetchProject(project.id, useProjectStore.getState().currentEpisodeId!);
+    setLastFailedShots(newFailedIds);
+    setBatchProgress(null);
+
+    if (newFailedIds.length === 0) {
+      toast.success("All retries succeeded");
+    } else {
+      toast.error(`${newFailedIds.length} shots still failing`);
+    }
   }
 
   async function handleAutoRun() {
@@ -695,8 +831,45 @@ export default function EpisodeStoryboardPage() {
                   )}
                   {t("project.autoRun")}
                 </Button>
+                {lastFailedShots.length > 0 && !batchProgress && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleRetryFailed}
+                    disabled={anyGenerating}
+                    className="border-destructive/50 text-destructive hover:bg-destructive/10"
+                  >
+                    <RefreshCw className="mr-1 h-4 w-4" />
+                    Retry {lastFailedShots.length} failed
+                  </Button>
+                )}
               </div>
             </>
+          )}
+
+          {/* Batch progress bar */}
+          {batchProgress && (
+            <div className="flex items-center gap-3 rounded-lg border p-3 bg-muted/50">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <div className="flex-1">
+                <div className="h-2 rounded-full bg-muted overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-primary transition-all duration-300"
+                    style={{
+                      width: `${batchProgress.total > 0 ? (batchProgress.completed / batchProgress.total) * 100 : 0}%`,
+                    }}
+                  />
+                </div>
+              </div>
+              <span className="text-sm text-muted-foreground tabular-nums">
+                {batchProgress.completed}/{batchProgress.total}
+                {batchProgress.failed.length > 0 && (
+                  <span className="text-destructive ml-1">
+                    ({batchProgress.failed.length} failed)
+                  </span>
+                )}
+              </span>
+            </div>
           )}
         </div>
         )}
