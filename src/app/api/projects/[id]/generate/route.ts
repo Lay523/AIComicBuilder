@@ -876,14 +876,30 @@ async function handleShotSplitStream(
       depthOfField: shot.depthOfField || "medium",
       soundDesign: shot.soundDesign || "",
       musicCue: shot.musicCue || "",
-      referenceImages: JSON.stringify(
-        (Array.isArray(shot.referenceImagePrompts) ? shot.referenceImagePrompts : [])
-          .map((p: string) => ({
+      referenceImages: (() => {
+        let refPrompts = Array.isArray(shot.referenceImagePrompts) ? shot.referenceImagePrompts : [];
+
+        // Fallback: if AI didn't output referenceImagePrompts, auto-generate from shot content
+        if (refPrompts.length === 0) {
+          const desc = shot.sceneDescription || shot.startFrame || "";
+          if (desc) {
+            // Generate 1-2 reference prompts from scene description
+            refPrompts = [desc.substring(0, 200)];
+            if (shot.endFrame && shot.endFrame !== shot.startFrame) {
+              refPrompts.push(shot.endFrame.substring(0, 200));
+            }
+          }
+        }
+
+        console.log(`[ShotSplit] Shot ${shot.sequence}: ${refPrompts.length} ref image prompts`);
+        return JSON.stringify(
+          refPrompts.map((p: string) => ({
             id: genId(),
             prompt: p,
             status: "pending",
           }))
-      ),
+        );
+      })(),
       episodeId: episodeId ?? null,
     });
 
