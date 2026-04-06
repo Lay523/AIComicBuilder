@@ -816,8 +816,13 @@ async function handleShotSplitStream(
         // 3. Flat array: [{ sequence, ... }]
         let shotList: ParsedShot[];
         if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].shots) {
-          // Scene-grouped format — flatten all shots from all scenes
-          shotList = parsed.flatMap((scene: { shots?: ParsedShot[] }) => scene.shots || []);
+          // Scene-grouped format — flatten shots and inherit scene description
+          shotList = parsed.flatMap((scene: { sceneDescription?: string; shots?: ParsedShot[] }) =>
+            (scene.shots || []).map((s) => ({
+              ...s,
+              sceneDescription: s.sceneDescription || scene.sceneDescription || "",
+            }))
+          );
         } else if (Array.isArray(parsed)) {
           shotList = parsed;
         } else {

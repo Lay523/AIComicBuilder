@@ -222,18 +222,10 @@ export function ShotCard({
   const imageGuard = useModelGuard("image");
   const videoGuard = useModelGuard("video");
 
-  // Parse multi-reference images; fallback to startFrameDesc as first ref prompt
+  // Parse multi-reference images
   const parsedRefImages = useMemo(() => {
-    const parsed = parseRefImages(referenceImages);
-    if (parsed.length === 0 && startFrameDesc && generationMode === "reference") {
-      return [{
-        id: "auto-start-frame",
-        prompt: startFrameDesc,
-        status: "pending" as const,
-      }];
-    }
-    return parsed;
-  }, [referenceImages, startFrameDesc, generationMode]);
+    return parseRefImages(referenceImages);
+  }, [referenceImages]);
 
   // Derived state
   const hasText = !!(prompt || startFrameDesc || motionScript);
