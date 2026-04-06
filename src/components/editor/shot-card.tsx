@@ -726,68 +726,7 @@ export function ShotCard({
                 placeholder={t("shot.prompt")}
               />
             </div>
-            {generationMode === "reference" ? (
-              <div>
-                <div className="mb-1 flex items-center gap-1">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-violet-500">{t("shot.sceneFramePrompt")}</p>
-                  <AiOptimizeButton
-                    value={editStartFrame}
-                    onOptimized={(v) => { setEditStartFrame(v); patchShot({ startFrameDesc: v }); }}
-                    fieldLabel="sceneFramePrompt"
-                    projectId={projectId}
-                  />
-                </div>
-                <Textarea
-                  value={editStartFrame}
-                  onChange={(e) => setEditStartFrame(e.target.value)}
-                  onBlur={() => patchShot({ startFrameDesc: editStartFrame })}
-                  rows={2}
-                  placeholder={t("shot.sceneFramePrompt")}
-                  className="border-violet-200 bg-violet-50/30 text-sm"
-                />
-              </div>
-            ) : (
-              <>
-                <div>
-                  <div className="mb-1 flex items-center gap-1">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-blue-500">{t("shot.startFrame")}</p>
-                    <AiOptimizeButton
-                      value={editStartFrame}
-                      onOptimized={(v) => { setEditStartFrame(v); patchShot({ startFrameDesc: v }); }}
-                      fieldLabel="startFrame"
-                      projectId={projectId}
-                    />
-                  </div>
-                  <Textarea
-                    value={editStartFrame}
-                    onChange={(e) => setEditStartFrame(e.target.value)}
-                    onBlur={() => patchShot({ startFrameDesc: editStartFrame })}
-                    rows={2}
-                    placeholder={t("shot.startFrame")}
-                    className="border-blue-200 bg-blue-50/30 text-sm"
-                  />
-                </div>
-                <div>
-                  <div className="mb-1 flex items-center gap-1">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-amber-500">{t("shot.endFrame")}</p>
-                    <AiOptimizeButton
-                      value={editEndFrame}
-                      onOptimized={(v) => { setEditEndFrame(v); patchShot({ endFrameDesc: v }); }}
-                      fieldLabel="endFrame"
-                      projectId={projectId}
-                    />
-                  </div>
-                  <Textarea
-                    value={editEndFrame}
-                    onChange={(e) => setEditEndFrame(e.target.value)}
-                    onBlur={() => patchShot({ endFrameDesc: editEndFrame })}
-                    rows={2}
-                    placeholder={t("shot.endFrame")}
-                    className="border-amber-200 bg-amber-50/30 text-sm"
-                  />
-                </div>
-              </>
-            )}
+            {/* Frame prompts moved to Step 2 (below images) */}
             <div>
               <div className="mb-1 flex items-center gap-1">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-emerald-600">{t("shot.motionScript")}</p>
@@ -937,37 +876,67 @@ export function ShotCard({
               )}
             </div>
           ) : (
-            <div className="mb-2.5 flex gap-2">
+            <div className="mb-2.5 grid grid-cols-2 gap-2">
               {frameAssets.map((asset, i) => {
                 const fieldName = (i === 0 ? "firstFrame" : "lastFrame") as "firstFrame" | "lastFrame";
                 const isUploading = uploadingField === fieldName;
+                const isStart = i === 0;
+                const editValue = isStart ? editStartFrame : editEndFrame;
+                const setEditValue = isStart ? setEditStartFrame : setEditEndFrame;
+                const dbField = isStart ? "startFrameDesc" : "endFrameDesc";
+                const label = isStart ? t("shot.startFrame") : t("shot.endFrame");
+                const colorClass = isStart ? "border-blue-200 bg-blue-50/30" : "border-amber-200 bg-amber-50/30";
+
                 return (
-                  <div key={i} className="flex flex-col gap-1" style={{ width: "50%" }}>
+                  <div key={i} className="rounded-lg border border-[--border-subtle] bg-white overflow-hidden">
+                    {/* Image */}
                     <div
-                      className={`relative overflow-hidden rounded-lg border border-[--border-subtle] bg-[--surface] ${asset.src && !isUploading ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}`}
+                      className={`relative bg-[--surface] ${asset.src && !isUploading ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}`}
                       onClick={() => asset.src && !isUploading && setPreviewSrc(uploadUrl(asset.src))}
                     >
                       {isUploading ? (
-                        <div className="flex h-16 items-center justify-center"><Loader2 className="h-4 w-4 animate-spin text-primary" /></div>
+                        <div className="flex h-20 items-center justify-center"><Loader2 className="h-4 w-4 animate-spin text-primary" /></div>
                       ) : asset.src ? (
                         <img src={uploadUrl(asset.src)} className="w-full object-contain" />
                       ) : (
-                        <div className="flex h-16 items-center justify-center"><ImageIcon className="h-4 w-4 text-[--text-muted]" /></div>
+                        <div className="flex h-20 items-center justify-center"><ImageIcon className="h-5 w-5 text-[--text-muted]" /></div>
                       )}
                     </div>
-                    <div className="flex gap-1">
+                    {/* Prompt */}
+                    <div className="border-t border-[--border-subtle]">
+                      <div className="flex items-center gap-1 px-2 pt-1">
+                        <p className={`text-[9px] font-semibold uppercase tracking-[0.1em] ${isStart ? "text-blue-500" : "text-amber-500"}`}>{label}</p>
+                        <AiOptimizeButton
+                          value={editValue}
+                          onOptimized={(v) => { setEditValue(v); patchShot({ [dbField]: v }); }}
+                          fieldLabel={dbField}
+                          projectId={projectId}
+                        />
+                      </div>
+                      <textarea
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => patchShot({ [dbField]: editValue })}
+                        placeholder={label}
+                        rows={3}
+                        className={`w-full resize-none border-0 bg-transparent px-2 py-1 text-[11px] leading-snug text-[--text-secondary] placeholder:text-[--text-muted] focus:outline-none`}
+                      />
+                    </div>
+                    {/* Action bar */}
+                    <div className="flex items-center gap-1 border-t border-[--border-subtle] px-1.5 py-1">
                       <button
                         onClick={() => handleUploadFrame(fieldName)}
                         disabled={isUploading}
-                        className="flex flex-1 items-center justify-center gap-1 rounded-md border border-[--border-subtle] bg-white py-0.5 text-[10px] text-[--text-muted] transition-colors hover:border-primary/40 hover:text-primary disabled:opacity-40"
+                        className="flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] text-[--text-muted] hover:bg-[--bg-muted] hover:text-primary disabled:opacity-40 transition-colors"
                       >
                         <Upload className="h-2.5 w-2.5" />
                         {t("common.upload")}
                       </button>
+                      <div className="flex-1" />
                       {asset.src && (
                         <button
                           onClick={() => handleClearFrame(fieldName)}
-                          className="flex items-center justify-center rounded-md border border-[--border-subtle] bg-white px-1.5 py-0.5 text-[10px] text-[--text-muted] transition-colors hover:border-red-300 hover:text-red-500"
+                          className="flex items-center rounded px-1.5 py-0.5 text-[10px] text-[--text-muted] hover:bg-red-50 hover:text-red-500 transition-colors"
                         >
                           <Trash2 className="h-2.5 w-2.5" />
                         </button>
