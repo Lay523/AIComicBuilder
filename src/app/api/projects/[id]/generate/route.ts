@@ -778,10 +778,14 @@ async function handleShotSplitStream(
     duration: number;
     dialogues: Array<{ character: string; text: string }>;
     cameraDirection?: string;
+    transitionIn?: string;
+    transitionOut?: string;
+    compositionGuide?: string;
     focalPoint?: string;
     depthOfField?: string;
     soundDesign?: string;
     musicCue?: string;
+    referenceImagePrompts?: string[];
   };
 
   // Process chunks concurrently
@@ -865,10 +869,21 @@ async function handleShotSplitStream(
       videoScript: shot.videoScript ?? null,
       cameraDirection: shot.cameraDirection || "static",
       duration: shot.duration,
+      transitionIn: shot.transitionIn || "cut",
+      transitionOut: shot.transitionOut || "cut",
+      compositionGuide: shot.compositionGuide || "",
       focalPoint: shot.focalPoint || "",
       depthOfField: shot.depthOfField || "medium",
       soundDesign: shot.soundDesign || "",
       musicCue: shot.musicCue || "",
+      referenceImages: JSON.stringify(
+        (Array.isArray(shot.referenceImagePrompts) ? shot.referenceImagePrompts : [])
+          .map((p: string) => ({
+            id: genId(),
+            prompt: p,
+            status: "pending",
+          }))
+      ),
       episodeId: episodeId ?? null,
     });
 
