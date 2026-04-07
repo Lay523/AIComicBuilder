@@ -2045,8 +2045,10 @@ async function handleSingleReferenceVideo(
   try {
     await db.update(shots).set({ status: "generating" }).where(eq(shots.id, shotId));
 
-    // Step 1: Reuse existing scene ref frame, or generate a new one (Toonflow-style)
-    let sceneFramePath = shot.sceneRefFrame ?? null;
+    // Step 1: Prefer the first user-selected reference image, fall back to sceneRefFrame
+    const refItemsForVideo = parseRefImages(shot.referenceImages as string)
+      .filter((r) => r.type === "reference" && r.imagePath);
+    let sceneFramePath: string | null = refItemsForVideo[0]?.imagePath || shot.sceneRefFrame || null;
     if (!sceneFramePath) {
       const imageProvider = resolveImageProvider(modelConfig, versionedUploadDir);
       const refSlotContents = await resolveSlotContents("scene_frame_generate", { userId, projectId });
@@ -2257,27 +2259,34 @@ async function handleBatchReferenceVideo(
           };
         });
 
-        // Step 1: Generate scene reference frame (Toonflow-style)
-        const batchRefSlots = await resolveSlotContents("scene_frame_generate", { userId, projectId });
-        const sceneFramePrompt = buildSceneFramePrompt({
-          sceneDescription: shot.prompt || "",
-          charRefMapping,
-          characterDescriptions,
-          cameraDirection: shot.cameraDirection,
-          startFrameDesc: shot.startFrameDesc,
-          motionScript: shot.motionScript,
-          slotContents: batchRefSlots,
-        });
+        // Step 1: Prefer user-selected first reference image; only regenerate scene frame if absent
+        const refItemsForBatchVideo = parseRefImages(shot.referenceImages as string)
+          .filter((r) => r.type === "reference" && r.imagePath);
+        let sceneFramePath: string = refItemsForBatchVideo[0]?.imagePath || shot.sceneRefFrame || "";
 
-        console.log(`[BatchReferenceVideo] Shot ${shot.sequence}: generating scene frame, mapping="${charRefMapping}"`);
+        if (!sceneFramePath) {
+          const batchRefSlots = await resolveSlotContents("scene_frame_generate", { userId, projectId });
+          const sceneFramePrompt = buildSceneFramePrompt({
+            sceneDescription: shot.prompt || "",
+            charRefMapping,
+            characterDescriptions,
+            cameraDirection: shot.cameraDirection,
+            startFrameDesc: shot.startFrameDesc,
+            motionScript: shot.motionScript,
+            slotContents: batchRefSlots,
+          });
 
-        const sceneFramePath = await imageProvider.generateImage(sceneFramePrompt, {
-          quality: "hd",
-          referenceImages: charRefs.map((c) => c.imagePath),
-        });
+          console.log(`[BatchReferenceVideo] Shot ${shot.sequence}: generating scene frame, mapping="${charRefMapping}"`);
 
-        // Save scene frame for display (separate field — does not pollute firstFrame used by keyframe mode)
-        await db.update(shots).set({ sceneRefFrame: sceneFramePath }).where(eq(shots.id, shot.id));
+          sceneFramePath = await imageProvider.generateImage(sceneFramePrompt, {
+            quality: "hd",
+            referenceImages: charRefs.map((c) => c.imagePath),
+          });
+
+          await db.update(shots).set({ sceneRefFrame: sceneFramePath }).where(eq(shots.id, shot.id));
+        } else {
+          console.log(`[BatchReferenceVideo] Shot ${shot.sequence}: using selected ref image as scene frame`);
+        }
 
         // Step 2: Use stored videoPrompt if available; otherwise generate from scene frame via vision AI
         let videoPrompt: string;
