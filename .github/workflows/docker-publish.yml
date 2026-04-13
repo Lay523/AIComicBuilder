@@ -29,7 +29,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: twwch/aicomicbuilder
+          images: lay523/aicomicbuilder
           tags: |
             type=raw,value=latest
             type=semver,pattern={{version}}
