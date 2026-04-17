@@ -389,3 +389,35 @@ export const tasks = sqliteTable("tasks", {
     onDelete: "cascade",
   }),
 });
+
+export const agents = sqliteTable("agents", {
+  id: text("id").primaryKey(),
+  userId: text("user_id").notNull().default(""),
+  name: text("name").notNull(),
+  category: text("category", {
+    enum: ["script_outline", "script_generate", "script_parse", "character_extract", "shot_split", "keyframe_prompts", "video_prompts", "ref_image_prompts", "ref_video_prompts"],
+  }).notNull(),
+  platform: text("platform", {
+    enum: ["bailian", "dify", "coze"],
+  }).notNull().default("bailian"),
+  appId: text("app_id").notNull(),
+  apiKey: text("api_key").notNull(),
+  description: text("description").default(""),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export const agentBindings = sqliteTable("agent_bindings", {
+  id: text("id").primaryKey(),
+  projectId: text("project_id")
+    .notNull()
+    .references(() => projects.id, { onDelete: "cascade" }),
+  category: text("category", {
+    enum: ["script_outline", "script_generate", "script_parse", "character_extract", "shot_split", "keyframe_prompts", "video_prompts", "ref_image_prompts", "ref_video_prompts"],
+  }).notNull(),
+  agentId: text("agent_id").references(() => agents.id, { onDelete: "set null" }),
+});
